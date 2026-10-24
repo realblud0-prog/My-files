@@ -1,0 +1,14 @@
+-- deobfed at discord.gg/mwp
+-- source: input.lua
+-- behaviour trace: what the script did when run in a fake Roblox environment
+-- (only the code paths that actually ran)
+-- run status: script error: Oh yes baby, you got detected by LeakD | discord.gg/qteAQmfJmP
+--   /tmp/deobf_czqgchug/input.deobf.luau.harness.luau:11940
+--   Script:690
+--   /tmp/deobf_czqgchug/input.deobf.luau.harness.luau:11952
+--   
+-- 3 statements recorded in 0.05s
+
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local AccountService = game:FindService("AccountService")
