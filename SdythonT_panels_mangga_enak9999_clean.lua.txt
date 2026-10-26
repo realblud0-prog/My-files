@@ -1,0 +1,475 @@
+-- Unpacked by ZeroVector: the script inside the packed file, as it was written
+--[[
+	SDytonT Panel
+	Mobile Friendly Script Panel - v10.1
+	by @mangga_enak9999
+]]
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LP = Players.LocalPlayer
+local PlayerGui = LP:WaitForChild("PlayerGui")
+
+local ScriptList = {
+    { "Credits + Changelog", function() loadstring(game:HttpGet("https://pastefy.app/2IC3DwIz/raw"))() end, true },
+    { "Fling Panel", function() loadstring(game:HttpGet("https://pastefy.app/IEtQc2AG/raw"))() end },
+    { "XIANDI SCRIPT DYTON", function() loadstring(game:HttpGet("https://pastebin.com/raw/BnuJki8Z"))() end },
+    { "Report By Dython", function() loadstring(game:HttpGet("https://pastefy.app/CQJxqTMV/raw"))() end },
+    { "Wing Prop2", function() loadstring(game:HttpGet("https://pastefy.app/RM1MkrT4/raw"))() end },
+    { "Wing Prop", function() loadstring(game:HttpGet("https://pastefy.app/IJHHtWR6/raw"))() end },
+    { "Shark Prop", function() loadstring(game:HttpGet("https://pastefy.app/thWRWou1/raw"))() end },
+    { "B2 Spirit Prop", function() loadstring(game:HttpGet("https://pastefy.app/b0JRIsKj/raw"))() end },
+    { "Avarice Scythe", function() loadstring(game:HttpGet("https://pastefy.app/oneTZn9W/raw"))() end },
+    { "Gojo Controller", function() loadstring(game:HttpGet("https://pastefy.app/3MShESQ2/raw"))() end },
+    { "Wither Prop", function() loadstring(game:HttpGet("https://pastefy.app/q4Js0TjY/raw"))() end },
+    { "Wither Storm", function() loadstring(game:HttpGet("https://pastefy.app/5NOFcoUP/raw"))() end },
+    { "Wither Prop2", function() loadstring(game:HttpGet("https://pastefy.app/6jvLhYaS/raw"))() end },
+    { "B2-Spirit2", function() loadstring(game:HttpGet("https://pastefy.app/we9aonad/raw"))() end },
+    { "Wither3", function() loadstring(game:HttpGet("https://pastefy.app/0eGHRHNp/raw"))() end },
+    { "Wither Storm2", function() loadstring(game:HttpGet("https://pastefy.app/r4nWQYzg/raw"))() end },
+    { "Verity Prop", function() loadstring(game:HttpGet("https://pastefy.app/x1BOck3z/raw"))() end },
+    { "Godzilla Prop", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Johan319/Fe-Godzilla-Obfuscator/refs/heads/main/godzilla"))() end },
+    { "Raiden (Dyton Security)", function() loadstring(game:HttpGet("https://encrypt-x.pages.dev/Scripts?Id=raidenmaru"))("raidenmaru") end },
+    { "🌌 Nothing Panel", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Nothing-Panel-223707"))() end },
+    { "Wing Prop3", function() loadstring(game:HttpGet("https://pastefy.app/6ZVZWkbb/raw"))() end },
+    { "Ender Dragon", function() loadstring(game:HttpGet("https://pastefy.app/knN2ER4f/raw"))() end },
+    { "Radar Terror", function() loadstring(game:HttpGet("https://pastefy.app/lXwhhrxw/raw"))() end },
+    { "B2 Spirit Prop3", function() loadstring(game:HttpGet("https://pastefy.app/J35BTsjO/raw"))() end },
+    { "Rodan Prop", function() loadstring(game:HttpGet("https://pastefy.app/MeSs5ehk/raw"))() end },
+    { "Dual Spider Engine", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Engine-spider-props-use-sit-props-243775"))() end },
+    { "Spear Prop", function() loadstring(game:HttpGet("https://pastefy.app/pDY43Jvl/raw"))() end },
+    { "Curse Engine", function() loadstring(game:HttpGet("https://pastefy.app/LCb15eUP/raw"))() end },
+    { "Sukuna", function() loadstring(game:HttpGet("https://pastefy.app/XvOVpQB0/raw"))() end },
+    { "SCMD Prop (Key Xiandi)", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Wings-cmback-use-prop-Brookhaven-key-xiandi-211092"))() end },
+    { "Avarice Prop", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-AVARICE-WINGS-BY-NIZAM-217994"))() end },
+    { "Eryx (Key: ErYxOnToP)", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-ErYx-Prop-Animations-by-vansh-238691"))() end },
+    { "TXR Prop", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-TXR-ASHU-ROBOT-POWERFULL-TROLL-SCRIPT-241380"))() end },
+    { "Reptile", function() loadstring(game:HttpGet("https://pastefy.app/vtA0dM2D/raw"))() end },
+    { "Wings Prop V4", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Wings-By-yanzz-227428"))() end },
+    { "Immortal Demon", function() loadstring(game:HttpGet("https://pastefy.app/50yM3llG/raw"))() end },
+    { "Leviathan", function() loadstring(game:HttpGet("https://pastefy.app/tPvt3Uv8/raw"))() end },
+    { "Hand Prop", function() loadstring(game:HttpGet("https://pastefy.app/8oXtJqyl/raw"))() end },
+    { "🩸 BLOOD WING", function() loadstring(game:HttpGet("https://pastefy.app/RM1MkrT4/raw"))() end },
+    { "⭐ GOLD WING", function() loadstring(game:HttpGet("https://pastefy.app/KswGo9sh/raw"))() end },
+    { "🦅 RODAN", function() loadstring(game:HttpGet("https://pastefy.app/MeSs5ehk/raw"))() end },
+    { "🔱 YVELTAL SPEAR", function() loadstring(game:HttpGet("https://pastefy.app/TgYCmL8x/raw"))() end },
+    { "🐉 ENDER DRAGON", function() loadstring(game:HttpGet("https://pastefy.app/noaegDTm/raw"))() end },
+    { "📢 SIREN HEAD", function() loadstring(game:HttpGet("https://pastefy.app/Jbl7kxcV/raw"))() end },
+    { "🌪️ WITHER STORM", function() loadstring(game:HttpGet("https://pastefy.app/dRYsTz9D/raw"))() end },
+    { "💀 WITHER SOULKING", function() loadstring(game:HttpGet("https://pastefy.app/quo8KqqZ/raw"))() end },
+    { "⚡ VERITY ENGINE", function() loadstring(game:HttpGet("https://pastefy.app/wSHa5qm2/raw"))() end },
+    { "🦎 GODZILLA", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Johan319/Fe-Godzilla-Obfuscator/refs/heads/main/godzilla"))() end },
+    { "🌀 ADAPTATION", function() loadstring(game:HttpGet("https://pastefy.app/tyVThswd/raw"))() end },
+    { "✈️ B2 SPIRIT", function() loadstring(game:HttpGet("https://pastefy.app/iO8Tf3E0/raw"))() end },
+    { "💥 BOMB CANNON", function() loadstring(game:HttpGet("https://pastefy.app/AzWyyYDU/raw"))() end },
+    { "📋 REPORT DYTON", function() loadstring(game:HttpGet("https://pastefy.app/CQJxqTMV/raw"))() end },
+    { "👿 IMMORTAL DEMON", function() loadstring(game:HttpGet("https://pastefy.app/50yM3llG/raw"))() end },
+    { "🌙 AVARICE SCYTHE", function() loadstring(game:HttpGet("https://pastefy.app/AD1FAauP/raw"))() end },
+    { "🤬 SKYBOX", function() loadstring(game:HttpGet("https://pastefy.app/17W4TVLt/raw"))() end },
+    { "🐊 Reptile", function() loadstring(game:HttpGet("https://pastefy.app/vtA0dM2D/raw"))() end },
+    { "☢️ Flashbang", function() loadstring(game:HttpGet("https://pastefy.app/xWH7XbIL/raw"))() end },
+    { "✳️ PropsOrbit", function() loadstring(game:HttpGet("https://pastefy.app/qvf1RMUv/raw"))() end },
+    { "⚠️ Tornado", function() loadstring(game:HttpGet("https://pastebin.com/raw/Ezfa3188", true))() end },
+    { "🧿 Quantum", function() loadstring(game:HttpGet("https://pastefy.app/5DHZpKqu/raw"))() end },
+    { "🛸 Drone", function() loadstring(game:HttpGet("https://pastefy.app/HLZ1MOVb/raw"))() end },
+    { "👀 contr0olroom", function() loadstring(game:HttpGet("https://pastefy.app/IEtQc2AG/raw"))() end },
+    { "🪐 EryxProps (key: ErYxOnToP)", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-ErYx-Prop-Animations-by-vansh-238691"))() end },
+    { "🗿 Cursed", function() loadstring(game:HttpGet("https://pastefy.app/LCb15eUP/raw"))() end },
+    { "😹 Spider", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Engine-spider-props-use-sit-props-243775"))() end },
+    { "🐋 Leviathan", function() loadstring(game:HttpGet("https://pastefy.app/tPvt3Uv8/raw"))() end },
+    { "🌎 Hollow Purple", function() loadstring(game:HttpGet("https://pastefy.app/3MShESQ2/raw"))() end },
+    { "🧢 Esp", function() loadstring(game:HttpGet("https://pastefy.app/WyrwhnY2/raw"))() end },
+    { "🖐️ Giant Hand", function() loadstring(game:HttpGet("https://pastefy.app/8oXtJqyl/raw"))() end },
+    { "📦 Script 1", function() loadstring(game:HttpGet("https://pastefy.app/zVVWbnzI/raw"))() end },
+    { "📦 Script 2", function() loadstring(game:HttpGet("https://pastefy.app/FWqLbiLc/raw"))() end },
+    { "📦 Script 3", function() loadstring(game:HttpGet("https://pastefy.app/JpAAwGYK/raw"))() end },
+    { "📦 Script 4", function() loadstring(game:HttpGet("https://pastefy.app/3Mt00YYy/raw"))() end },
+    { "📦 Script 5", function() loadstring(game:HttpGet("https://pastefy.app/8DI74VP0/raw"))() end },
+    { "📦 Script 6", function() loadstring(game:HttpGet("https://pastefy.app/CulAljo6/raw"))() end },
+    { "📦 Script 7", function() loadstring(game:HttpGet("https://pastefy.app/HPhvu5GG/raw"))() end },
+    { "📦 Script 8", function() loadstring(game:HttpGet("https://pastefy.app/lNNYhS8d/raw"))() end },
+    { "📦 Script 9", function() loadstring(game:HttpGet("https://pastefy.app/ObnVrLbx/raw"))() end },
+    { "📦 Script 10", function() loadstring(game:HttpGet("https://pastefy.app/yYx88vMc/raw"))() end },
+    { "🌀 JSY GUI v2", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/jsymenu/JSY/refs/heads/main/guiv2.txt"))() end },
+    { "🎭 Tempest Emotes", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Tempest-emotes-103260"))() end },
+    { "📦 Script 11", function() loadstring(game:HttpGet("https://pastefy.app/EcOVSxAI/raw"))() end },
+    { "📦 Script 12", function() loadstring(game:HttpGet("https://pastefy.app/PyOgAHzJ/raw"))() end },
+    { "📦 Script 13", function() loadstring(game:HttpGet("https://pastefy.app/R3qiCrGX/raw"))() end },
+    { "📦 Script 14", function() loadstring(game:HttpGet("https://pastefy.app/oNbEjGH1/raw"))() end },
+    { "📦 Script 15", function() loadstring(game:HttpGet("https://pastebin.com/raw/Ai5WqH8N"))() end },
+    { "♾️ Infinite Yield 500", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Infinite-Yield_500"))() end },
+    { "📦 Script 16", function() loadstring(game:HttpGet("https://pastefy.app/6g4F1iVY/raw"))() end },
+    { "📦 Script 17", function() loadstring(game:HttpGet("https://pastefy.app/DsxXOJps/raw"))() end },
+    { "📦 Script 18", function() loadstring(game:HttpGet("https://pastefy.app/U6kpNYwk/raw"))() end },
+    { "💥 Zama Fling v1", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Jotarokujo749/Zamasuhub1/refs/heads/main/zamaflingv1.lua"))() end },
+    { "📦 Script 19", function() loadstring(game:HttpGet("https://pastefy.app/ojdRHt0a/raw"))() end },
+    { "🐭 Mickey Chat", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Mickey-Chat-85762"))() end },
+    { "🕳️ Blackhole Hunter", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Blackhole-Hunter-all-players-version-76016"))() end },
+    { "🎵 Lyra Hub", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Lyra-Hub-Brookhaven-81184"))() end },
+    { "🌪️ Aero Brookhaven", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/xploitforceofficial-stack/aeropublic/refs/heads/main/aero%25brookhaven.lua"))() end },
+    { "⚙️ SystemBroken 2026", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-SystemBroken-New-2026-85435"))() end },
+    { "🎶 YouTube Music", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-YouTube-Music-Player-72222"))() end },
+    { "📦 Script 20", function() loadstring(game:HttpGet("https://pastefy.app/44gfnlmJ/raw"))() end },
+    { "📦 Script 21", function() loadstring(game:HttpGet("https://pastefy.app/esT92Uw5/raw"))() end },
+    { "📦 Script 22", function() loadstring(game:HttpGet("https://pastefy.app/gGEtRQvH/raw"))() end },
+    { "🛸 Fly GUI (ItzXery)", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fly-Gui-By-ItzXery-67078"))() end },
+    { "📦 Script 23", function() loadstring(game:HttpGet("https://pastefy.app/dKGG6s5l/raw"))() end },
+    { "🚗 Vehicle Controller", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-BROOKHAVEN-VEHICLE-CONTROLLER-Fe-sound-99705"))() end },
+    { "📦 Script 24", function() loadstring(game:HttpGet("https://pastebin.com/raw/VVWcfs9t"))() end },
+    { "📦 Script 25", function() loadstring(game:HttpGet("https://pastefy.app/3o4y9b8d/raw"))() end },
+    { "🥚 Egg Hub Hunters", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Brookhaven-RP-Egg-hub-Hunters-brookhaven-92496"))() end },
+    { "📦 Script 26", function() loadstring(game:HttpGet("https://pastefy.app/IICTgMlo/raw"))() end },
+    { "📦 Script 27", function() loadstring(game:HttpGet("https://pastefy.app/n1raImyF/raw"))() end },
+    { "📦 Script 28", function() loadstring(game:HttpGet("https://pastefy.app/JYcKAx5p/raw"))() end },
+    { "📦 Script 29", function() loadstring(game:HttpGet("https://pastefy.app/VY0His3V/raw"))() end },
+    { "📦 Script 30", function() loadstring(game:HttpGet("https://pastebin.com/raw/kDA875bF"))() end },
+    { "🛡️ Nameless Admin", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source"))() end },
+    { "📦 Script 31", function() loadstring(game:HttpGet("https://pastefy.app/v2de5bqT/raw"))() end },
+    { "📦 Script 32", function() loadstring(game:HttpGet("https://pastefy.app/AxwqbAMk/raw"))() end },
+    { "🌀 ADAPTASI FREE", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/justhin176-bot/ADAPTASI/main/FREE"))() end },
+    { "📦 Script 33", function() loadstring(game:HttpGet("https://pastefy.app/dAgRnVOu/raw"))() end },
+    { "📦 Script 34", function() loadstring(game:HttpGet("https://pastefy.app/vs7i4Et8/raw"))() end },
+    { "📦 Script 35", function() loadstring(game:HttpGet("https://pastefy.app/NYUGpv1o/raw"))() end },
+    { "📦 Script 36", function() loadstring(game:HttpGet("https://pastefy.app/OF5xDOuO/raw"))() end },
+    { "📦 Script 37", function() loadstring(game:HttpGet("https://pastefy.app/HFgAUoFH/raw"))() end },
+    { "📦 Script 38 (Gojo)", function() loadstring(game:HttpGet("https://pastefy.app/3MShESQ2/raw"))() end },
+    { "📦 Script 39", function() loadstring(game:HttpGet("https://pastefy.app/pNb2Iq7o/raw"))() end },
+    { "🎯 YunusLo1545 HUB", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/yunus154524/YunusLo1545-HUB/refs/heads/main/YunusLo1545%20HUB"))() end },
+    { "💥 Fling GUI (Arjun)", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fling-GUI-by-Arjun-135811"))() end },
+    { "💥 Alrect Fling v1", function() loadstring(game:HttpGet("https://alrect-fling-v1-5hqf.vercel.app/Alrectgantekv1.lua"))() end },
+    { "🎣 Bring Part Troll", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/amdzy088/BringPartTroll/refs/heads/main/BringPartAll"))() end },
+    { "📦 Script 40", function() loadstring(game:HttpGet("https://pastefy.app/NRznrioI/raw"))() end },
+    { "💥 Bring Fling Players", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Bac0nHck/Scripts/main/BringFlingPlayers"))() end },
+    { "🔍 Server Finder Deluxe", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MaxproGlitcher/Server-Finder-Deluxe/refs/heads/main/Finder_Servers_Code.luau"))() end },
+    { "📦 Script 41", function() loadstring(game:HttpGet("https://pastefy.app/qc6y6zW7/raw"))() end },
+    { "💧 DRIP Client OS", function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-DRIP-CLIENT-OPEN-SOURCE-76861"))() end },
+    { "⏪ FlashBack", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MSTTOPPER/Scripts/refs/heads/main/FlashBack"))() end },
+    { "📦 Script 42", function() loadstring(game:HttpGet("https://pastefy.app/EM2Cja9P/raw"))() end },
+    { "📦 Script 43", function() loadstring(game:HttpGet("https://pastefy.app/EqgSfhii/raw"))() end },
+    { "📦 Script 44", function() loadstring(game:HttpGet("https://pastefy.app/Ts00EcIV/raw"))() end },
+    { "📦 Script 45", function() loadstring(game:HttpGet("https://pastefy.app/7F5XlxCj/raw"))() end },
+    { "📦 Script 46", function() loadstring(game:HttpGet("https://pastefy.app/deKpIoNE/raw"))() end },
+    { "📦 Script 47", function() loadstring(game:HttpGet("https://pastefy.app/og4yaCQe/raw"))() end },
+    { "📦 Script 48", function() loadstring(game:HttpGet("https://pastefy.app/UsphGdlt/raw"))() end },
+    { "📦 Script 49", function() loadstring(game:HttpGet("https://pastefy.app/nbceplDq/raw"))() end },
+    { "📦 Script 50", function() loadstring(game:HttpGet("https://pastefy.app/rxyuGhKv/raw"))() end },
+    { "📦 Script 51", function() loadstring(game:HttpGet("https://pastefy.app/HMmAJAT8/raw"))() end },
+    { "📦 Script 52", function() loadstring(game:HttpGet("https://pastefy.app/Kl1RyH8k/raw"))() end },
+    { "📦 Script 53", function() loadstring(game:HttpGet("https://pastefy.app/MJOnblfc/raw"))() end },
+    { "📦 Script 54", function() loadstring(game:HttpGet("https://pastefy.app/ziKoUVos/raw"))() end },
+    { "📦 Script 55", function() loadstring(game:HttpGet("https://pastefy.app/pADjo5ch/raw"))() end },
+    { "📦 Script 56", function() loadstring(game:HttpGet("https://pastefy.app/gL1sKvkE/raw"))() end },
+    { "🪽 True Wings by nodelta41", function() loadstring(game:HttpGet("https://pastefy.app/swog0q9A/raw"))() end },
+    { "💣 Spam Bomb by nodelta41", function() loadstring(game:HttpGet("https://pastefy.app/EOgUKjZY/raw"))() end },
+    { "🎛️ Controlroom v2", function() loadstring(game:HttpGet("https://pastefy.app/I1qBSMme/raw"))() end },
+    { "👹 Sukuna", function() loadstring(game:HttpGet("https://pastefy.app/StXVRQa9/raw"))() end },
+    { "🌀 Adaptation Mahoraga", function() loadstring(game:HttpGet("https://pastefy.app/LdcYfZLp/raw"))() end },
+    { "🌑 Black Scythe", function() loadstring(game:HttpGet("https://pastefy.app/EaXx63WF/raw"))() end },
+    { "✨ Divine Wings", function() loadstring(game:HttpGet("https://pastefy.app/OY3Dk8dT/raw"))() end },
+    { "✈️ B-2 Spirit Stealth Bomber V", function() loadstring(game:HttpGet("https://pastefy.app/jekBpflQ/raw"))() end },
+    { "🤖 Mecha Prop", function() loadstring(game:HttpGet("https://pastebin.com/raw/0mdN3fFN"))() end },
+    { "🚀 Script Tp Safes", function() loadstring(game:HttpGet("https://pastefy.app/tlcwFTDr/raw"))() end },
+    { "💣 Script Bomb Blast Cannon", function() loadstring(game:HttpGet("https://pastefy.app/U8YA6klA/raw"))() end },
+    { "🌪️ Wither Storm v2", function() loadstring(game:HttpGet("https://pastefy.app/l4ELsID8/raw"))() end },
+    { "🌑 Shadow Hand", function() loadstring(game:HttpGet("https://pastefy.app/02vMU3Wb/raw"))() end },
+    { "😈 Demogorgon", function() loadstring(game:HttpGet("https://pastefy.app/YblUk2ah/raw"))() end },
+    { "🎛️ Panel By Gubernur_Brookhaven", function() loadstring(game:HttpGet("https://pastefy.app/w5FYqDgg/raw"))() end },
+    { "✋ Susano'o Itachi Hand", function() loadstring(game:HttpGet("https://pastefy.app/kyI1rNZv/raw"))() end },
+    { "🐕 Doggy Bot", function() loadstring(game:HttpGet("https://pastefy.app/2psXpKZo/raw"))() end },
+}
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SDytonTPanel"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = PlayerGui
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 45, 0, 45)
+ToggleButton.Position = UDim2.new(0, 20, 0.5, -22)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Text = "SD"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+ToggleButton.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 10)
+ToggleCorner.Parent = ToggleButton
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Thickness = 2
+ToggleStroke.Color = Color3.fromRGB(80, 80, 90)
+ToggleStroke.Parent = ToggleButton
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 333, 0, 275)
+MainFrame.Position = UDim2.new(0.5, -166, 0.5, -137)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, -12, 0, 42)
+TitleBar.Position = UDim2.new(0, 6, 0, 6)
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleBarCorner = Instance.new("UICorner")
+TitleBarCorner.CornerRadius = UDim.new(0, 8)
+TitleBarCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -45, 0, 22)
+Title.Position = UDim2.new(0, 12, 0, 3)
+Title.BackgroundTransparency = 1
+Title.Text = "SDytonT Panel"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+local CreditText = Instance.new("TextLabel")
+CreditText.Name = "CreditText"
+CreditText.Size = UDim2.new(1, -45, 0, 12)
+CreditText.Position = UDim2.new(0, 12, 0, 25)
+CreditText.BackgroundTransparency = 1
+CreditText.Text = "by @mangga_enak9999"
+CreditText.TextColor3 = Color3.fromRGB(170, 170, 180)
+CreditText.TextSize = 10
+CreditText.Font = Enum.Font.GothamBold
+CreditText.TextXAlignment = Enum.TextXAlignment.Left
+CreditText.Parent = TitleBar
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+MinimizeBtn.Position = UDim2.new(1, -32, 0.5, -14)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.BorderSizePixel = 0
+MinimizeBtn.Text = "—"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 20
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.Parent = TitleBar
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Size = UDim2.new(1, -12, 0, 38)
+SearchBox.Position = UDim2.new(0, 6, 0, 52)
+SearchBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+SearchBox.BorderSizePixel = 0
+SearchBox.Text = ""
+SearchBox.PlaceholderText = "Search In here 🔍"
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.PlaceholderColor3 = Color3.fromRGB(180, 180, 190)
+SearchBox.TextScaled = true
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+SearchBox.Font = Enum.Font.GothamBold
+SearchBox.ClearTextOnFocus = false
+SearchBox.Parent = MainFrame
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 8)
+SearchCorner.Parent = SearchBox
+
+local SearchPadding = Instance.new("UIPadding")
+SearchPadding.PaddingLeft = UDim.new(0, 12)
+SearchPadding.Parent = SearchBox
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Size = UDim2.new(1, -12, 1, -106)
+ScrollFrame.Position = UDim2.new(0, 6, 0, 96)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 3
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 130)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.Parent = MainFrame
+
+local ScrollLayout = Instance.new("UIListLayout")
+ScrollLayout.Padding = UDim.new(0, 6)
+ScrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ScrollLayout.Parent = ScrollFrame
+
+local ScrollPadding = Instance.new("UIPadding")
+ScrollPadding.PaddingTop = UDim.new(0, 2)
+ScrollPadding.PaddingBottom = UDim.new(0, 6)
+ScrollPadding.Parent = ScrollFrame
+
+local scriptButtons = {}
+
+local function createScriptButton(name, callback, order, isPinned)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(1, -4, 0, 44)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    btn.BorderSizePixel = 0
+    btn.Text = ""
+    btn.AutoButtonColor = false
+    btn.LayoutOrder = order
+    btn.Visible = true
+    btn.Parent = ScrollFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1
+    stroke.Color = Color3.fromRGB(80, 80, 90)
+    stroke.Parent = btn
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Name = "Label"
+    lbl.Size = UDim2.new(1, -16, 1, 0)
+    lbl.Position = UDim2.new(0, 12, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = name
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    lbl.TextScaled = true
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Font = Enum.Font.GothamBold
+    lbl.Parent = btn
+
+    if isPinned then
+        local pinTag = Instance.new("TextLabel")
+        pinTag.Name = "PinTag"
+        pinTag.Size = UDim2.new(0, 50, 0, 14)
+        pinTag.Position = UDim2.new(1, -54, 0, 5)
+        pinTag.BackgroundTransparency = 1
+        pinTag.Text = "pinned"
+        pinTag.TextColor3 = Color3.fromRGB(180, 180, 190)
+        pinTag.TextSize = 10
+        pinTag.Font = Enum.Font.GothamBold
+        pinTag.TextXAlignment = Enum.TextXAlignment.Right
+        pinTag.Parent = btn
+    end
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15),
+            {BackgroundColor3 = Color3.fromRGB(65, 65, 72)}):Play()
+    end)
+
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15),
+            {BackgroundColor3 = Color3.fromRGB(50, 50, 55)}):Play()
+    end)
+
+    btn.MouseButton1Down:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.1),
+            {BackgroundColor3 = Color3.fromRGB(30, 30, 35)}):Play()
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        task.spawn(function()
+            pcall(callback)
+        end)
+    end)
+
+    table.insert(scriptButtons, {btn = btn, name = name})
+    return btn
+end
+
+for i, data in ipairs(ScriptList) do
+    createScriptButton(data[1], data[2], i, data[3])
+end
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = SearchBox.Text:lower()
+    for _, entry in ipairs(scriptButtons) do
+        if query == "" or entry.name:lower():find(query, 1, true) then
+            entry.btn.Visible = true
+        else
+            entry.btn.Visible = false
+        end
+    end
+end)
+
+local hue = 0
+RunService.RenderStepped:Connect(function(dt)
+    hue = (hue + dt * 0.3) % 1
+    local c1 = Color3.fromHSV(hue, 0.7, 1)
+    ToggleStroke.Color = c1
+end)
+
+local function makeDraggable(frame, handle)
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+makeDraggable(MainFrame, TitleBar)
+
+ToggleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
