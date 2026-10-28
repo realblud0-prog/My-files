@@ -1,0 +1,244 @@
+-- Death Note Mobile Script (with handwriting effect)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local TextChatService = game:GetService("TextChatService")
+
+local LocalPlayer = Players.LocalPlayer
+local CHAT_CHANNEL = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+
+local function SendChat(msg)
+CHAT_CHANNEL:SendAsync(msg)
+end
+
+task.spawn(function()
+SendChat("THIS IS MY PERFECT VICTORY")
+task.wait(2)
+SendChat("THATS RIGHT I WIN!")
+end)
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DeathNoteMobile"
+ScreenGui.Parent = CoreGui
+
+local BookCover = Instance.new("Frame")
+BookCover.Size = UDim2.new(0,240,0,340)
+BookCover.Position = UDim2.new(0.5,-120,0.5,-170)
+BookCover.BackgroundColor3 = Color3.fromRGB(8,8,8)
+BookCover.Active = true
+BookCover.Draggable = true
+BookCover.Parent = ScreenGui
+
+local BookCorner = Instance.new("UICorner")
+BookCorner.Parent = BookCover
+
+local Title = Instance.new("TextLabel")
+Title.Text = "DEATH NOTE"
+Title.Font = Enum.Font.SpecialElite
+Title.TextSize = 28
+Title.TextColor3 = Color3.fromRGB(180,180,180)
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1,0,0,40)
+Title.Parent = BookCover
+
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Text = "Made by @ZorvethRobloxKing"
+CreditLabel.Font = Enum.Font.SpecialElite
+CreditLabel.TextSize = 18
+CreditLabel.TextColor3 = Color3.fromRGB(180,180,180)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Size = UDim2.new(1,0,0,30)
+CreditLabel.Position = UDim2.new(0,0,1,-30)
+CreditLabel.Visible = false
+CreditLabel.Parent = BookCover
+
+BookCover.InputBegan:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+CreditLabel.Visible = true
+task.delay(3,function()
+CreditLabel.Visible = false
+end)
+end
+end)
+
+local PageArea = Instance.new("Frame")
+PageArea.Size = UDim2.new(0.9,0,0.75,0)
+PageArea.Position = UDim2.new(0.05,0,0.15,0)
+PageArea.BackgroundColor3 = Color3.fromRGB(240,238,225)
+PageArea.Parent = BookCover
+
+local PageCorner = Instance.new("UICorner")
+PageCorner.Parent = PageArea
+
+local InputBox = Instance.new("TextBox")
+InputBox.Size = UDim2.new(1,-20,0,30)
+InputBox.Position = UDim2.new(0,10,0,10)
+InputBox.BackgroundTransparency = 1
+InputBox.Font = Enum.Font.IndieFlower
+InputBox.TextSize = 22
+InputBox.PlaceholderText = "write victim's name"
+InputBox.TextXAlignment = Enum.TextXAlignment.Left
+InputBox.Parent = PageArea
+
+local function WriteEffect(text)
+InputBox.Text = ""
+for i = 1,#text do
+InputBox.Text = string.sub(text,1,i)
+task.wait(0.05)
+end
+end
+
+local SuggestionScroll = Instance.new("ScrollingFrame")
+SuggestionScroll.Size = UDim2.new(1,0,0.75,-40)
+SuggestionScroll.Position = UDim2.new(0,0,0,50)
+SuggestionScroll.BackgroundTransparency = 1
+SuggestionScroll.BorderSizePixel = 0
+SuggestionScroll.Parent = PageArea
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Padding = UDim.new(0,5)
+ListLayout.Parent = SuggestionScroll
+
+local function Kill(playerTarget)
+
+if not playerTarget then return end
+
+SendChat(playerTarget.DisplayName.." [Heart Attack]")
+
+task.wait(4)
+
+local Character = LocalPlayer.Character
+local TargetChar = playerTarget.Character
+if not Character or not TargetChar then return end
+
+local RootPart = Character:FindFirstChild("HumanoidRootPart")
+local TargetRoot = TargetChar:FindFirstChild("HumanoidRootPart")
+
+if not RootPart or not TargetRoot then return end
+
+local OriginalPos = RootPart.CFrame
+local StartTime = tick()
+
+local Noclip
+local Fling
+
+Noclip = RunService.Stepped:Connect(function()
+	for _,part in pairs(Character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+		end
+	end
+end)
+
+Fling = RunService.Heartbeat:Connect(function()
+	if tick()-StartTime > 6 then  -- ONLY CHANGE (longer fling)
+
+		Noclip:Disconnect()
+		Fling:Disconnect()
+
+		RootPart.Velocity = Vector3.new()
+		RootPart.RotVelocity = Vector3.new()
+
+		RootPart.CFrame = OriginalPos + Vector3.new(0,5,0)
+
+		for _,part in pairs(Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
+
+	else
+		RootPart.CFrame = TargetRoot.CFrame
+		RootPart.Velocity = Vector3.new(100000,100000,100000)
+		RootPart.RotVelocity = Vector3.new(100000,100000,100000)
+	end
+end)
+
+end
+
+local Found = {}
+
+local function AddBtn(player)
+
+if table.find(Found,player.UserId) then return end
+table.insert(Found,player.UserId)
+
+local Btn = Instance.new("TextButton")
+Btn.Size = UDim2.new(1,0,0,45)
+Btn.BackgroundTransparency = 1
+Btn.Text = ""
+Btn.Parent = SuggestionScroll
+
+local Avatar = Instance.new("ImageLabel")
+Avatar.Size = UDim2.new(0,40,0,40)
+Avatar.Position = UDim2.new(0,5,0,2)
+Avatar.BackgroundTransparency = 1
+Avatar.Parent = Btn
+
+local success,thumb = pcall(function()
+	return Players:GetUserThumbnailAsync(player.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size48x48)
+end)
+
+if success then
+	Avatar.Image = thumb
+end
+
+local NameLabel = Instance.new("TextLabel")
+NameLabel.Size = UDim2.new(1,-50,1,0)
+NameLabel.Position = UDim2.new(0,50,0,0)
+NameLabel.BackgroundTransparency = 1
+NameLabel.Font = Enum.Font.IndieFlower
+NameLabel.TextSize = 20
+NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+NameLabel.Text = player.DisplayName.." (@"..player.Name..")"
+NameLabel.Parent = Btn
+
+Btn.MouseButton1Click:Connect(function()
+	WriteEffect(player.DisplayName)
+	Kill(player)
+end)
+
+end
+
+function UpdateList()
+
+for _,child in pairs(SuggestionScroll:GetChildren()) do
+	if child:IsA("TextButton") then
+		child:Destroy()
+	end
+end
+
+Found = {}
+
+local text = string.lower(InputBox.Text)
+
+if text == "" then return end
+
+for _,player in pairs(Players:GetPlayers()) do
+	if player ~= LocalPlayer then
+
+		if string.find(string.lower(player.Name),text) or
+		   string.find(string.lower(player.DisplayName),text) then
+
+			AddBtn(player)
+
+		end
+
+	end
+end
+
+end
+
+InputBox:GetPropertyChangedSignal("Text"):Connect(UpdateList)
+
+InputBox.FocusLost:Connect(function(enter)
+if enter then
+for _,player in pairs(Players:GetPlayers()) do
+if string.lower(player.Name) == string.lower(InputBox.Text) or
+string.lower(player.DisplayName) == string.lower(InputBox.Text) then
+WriteEffect(player.DisplayName)
+Kill(player)
+end
+end
+end
+end)
