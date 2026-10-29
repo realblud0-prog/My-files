@@ -1,0 +1,674 @@
+-- DARK GOTHAM MOBILE ADMIN GUI
+-- Safe client-side UI prototype
+-- Save as GothamAdmin.txt (or rename to .lua for Roblox Studio).
+-- Place as a LocalScript in StarterPlayer > StarterPlayerScripts.
+--
+-- Includes:
+--   * Draggable mobile-friendly Dark Gotham panel
+--   * Search by username or display name
+--   * Player avatar thumbnails and target selection
+--   * Spectate / return camera
+--   * Save and return to your own position
+--   * 2,000-stud self-position guard
+--   * Fast SELF-SPIN only (no player-fling routine)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local BLUE = Color3.fromRGB(45, 130, 255)
+local BG = Color3.fromRGB(15, 17, 23)
+local PANEL = Color3.fromRGB(23, 26, 34)
+local TEXT = Color3.fromRGB(235, 239, 248)
+local MUTED = Color3.fromRGB(145, 153, 170)
+local GREEN = Color3.fromRGB(100, 220, 150)
+local AMBER = Color3.fromRGB(255, 190, 90)
+
+local old = playerGui:FindFirstChild("GothamAdmin")
+if old then old:Destroy() end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "GothamAdmin"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 20
+gui.Parent = playerGui
+
+local uiScale = Instance.new("UIScale")
+uiScale.Parent = gui
+
+local function updateScale()
+    local camera = workspace.CurrentCamera
+    if camera then
+        local viewport = camera.ViewportSize
+        uiScale.Scale = math.clamp(math.min(viewport.X / 430, viewport.Y / 560), 0.68, 1)
+    end
+end
+
+updateScale()
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(updateScale)
+if workspace.CurrentCamera then
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+end
+
+local function corner(instance, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 8)
+    c.Parent = instance
+    return c
+end
+
+local function makeButton(parent, name, text, position, size, color, zIndex)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Position = position
+    button.Size = size
+    button.BackgroundColor3 = color or PANEL
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = TEXT
+    button.TextSize = 12
+    button.Font = Enum.Font.GothamSemibold
+    button.AutoButtonColor = true
+    button.ZIndex = zIndex or 2
+    button.Parent = parent
+    corner(button, 8)
+    return button
+end
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(340, 390)
+main.Position = UDim2.new(0.5, -170, 0.5, -195)
+main.BackgroundColor3 = BG
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Parent = gui
+corner(main, 12)
+
+local outline = Instance.new("UIStroke")
+outline.Color = Color3.fromRGB(48, 57, 76)
+outline.Thickness = 1
+outline.Parent = main
+
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 48)
+header.BackgroundColor3 = PANEL
+header.BorderSizePixel = 0
+header.Active = true
+header.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -105, 1, 0)
+title.Position = UDim2.fromOffset(14, 0)
+title.BackgroundTransparency = 1
+title.Text = "GOTHAM  /  ADMIN"
+title.TextColor3 = TEXT
+title.TextSize = 14
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
+
+local minimize = makeButton(header, "Minimize", "−",
+    UDim2.new(1, -76, 0, 9), UDim2.fromOffset(28, 29), BG, 3)
+local close = makeButton(header, "Close", "×",
+    UDim2.new(1, -39, 0, 9), UDim2.fromOffset(28, 29),
+    Color3.fromRGB(105, 39, 49), 3)
+
+-- Drag the main panel with mouse or touch.
+local dragging = false
+local dragStart, startPosition
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPosition = main.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPosition.X.Scale, startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+local body = Instance.new("Frame")
+body.Name = "Body"
+body.Position = UDim2.fromOffset(0, 48)
+body.Size = UDim2.new(1, 0, 1, -48)
+body.BackgroundTransparency = 1
+body.Parent = main
+
+local bodyPadding = Instance.new("UIPadding")
+bodyPadding.PaddingTop = UDim.new(0, 12)
+bodyPadding.PaddingLeft = UDim.new(0, 12)
+bodyPadding.PaddingRight = UDim.new(0, 12)
+bodyPadding.Parent = body
+
+local bodyLayout = Instance.new("UIListLayout")
+bodyLayout.Padding = UDim.new(0, 7)
+bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+bodyLayout.Parent = body
+
+local function makeSection(text, order)
+    local label = Instance.new("TextLabel")
+    label.LayoutOrder = order
+    label.Size = UDim2.new(1, 0, 0, 17)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = MUTED
+    label.TextSize = 10
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = body
+    return label
+end
+
+makeSection("POSITION & MOVEMENT", 1)
+
+local saveButton = makeButton(body, "SavePosition", "Save Current Position",
+    UDim2.new(), UDim2.new(1, 0, 0, 36), PANEL)
+saveButton.LayoutOrder = 2
+
+local returnButton = makeButton(body, "ReturnPosition", "Return to Saved Position",
+    UDim2.new(), UDim2.new(1, 0, 0, 36), PANEL)
+returnButton.LayoutOrder = 3
+
+local spinButton = makeButton(body, "SelfSpin", "Self-Spin: OFF",
+    UDim2.new(), UDim2.new(1, 0, 0, 36), BLUE)
+spinButton.LayoutOrder = 4
+
+local distanceButton = makeButton(body, "DistanceGuard", "Distance Guard: OFF",
+    UDim2.new(), UDim2.new(1, 0, 0, 36), PANEL)
+distanceButton.LayoutOrder = 5
+
+makeSection("TARGET & CAMERA", 6)
+
+local targetButton = makeButton(body, "TargetSelector", "◎  Open Target Selector",
+    UDim2.new(), UDim2.new(1, 0, 0, 36), PANEL)
+targetButton.LayoutOrder = 7
+
+local status = Instance.new("TextLabel")
+status.LayoutOrder = 8
+status.Size = UDim2.new(1, 0, 0, 23)
+status.BackgroundTransparency = 1
+status.Text = "●  Ready"
+status.TextColor3 = GREEN
+status.TextSize = 11
+status.Font = Enum.Font.Gotham
+status.TextXAlignment = Enum.TextXAlignment.Left
+status.Parent = body
+
+local savedCFrame
+local guardEnabled = false
+local spinEnabled = false
+local minimized = false
+local spinConnection
+local guardConnection
+local closed = false
+
+local function getRoot()
+    local character = player.Character
+    return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getHumanoid(plr)
+    local character = plr and plr.Character
+    return character and character:FindFirstChildOfClass("Humanoid")
+end
+
+local function restoreCamera()
+    local camera = workspace.CurrentCamera
+    local humanoid = getHumanoid(player)
+    if camera and humanoid then
+        camera.CameraSubject = humanoid
+    end
+end
+
+local function stopSpin()
+    spinEnabled = false
+    if spinConnection then
+        spinConnection:Disconnect()
+        spinConnection = nil
+    end
+    local root = getRoot()
+    if root then
+        root.AssemblyAngularVelocity = Vector3.zero
+    end
+    if spinButton and spinButton.Parent then
+        spinButton.Text = "Self-Spin: OFF"
+        spinButton.BackgroundColor3 = BLUE
+    end
+end
+
+saveButton.Activated:Connect(function()
+    local root = getRoot()
+    if not root then
+        status.Text = "● Character unavailable"
+        return
+    end
+    savedCFrame = root.CFrame
+    status.Text = "● Position saved"
+    status.TextColor3 = GREEN
+end)
+
+returnButton.Activated:Connect(function()
+    local root = getRoot()
+    if not root or not savedCFrame then
+        status.Text = "● Save a position first"
+        status.TextColor3 = AMBER
+        return
+    end
+    root.CFrame = savedCFrame
+    root.AssemblyLinearVelocity = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    status.Text = "● Returned to saved position"
+    status.TextColor3 = GREEN
+end)
+
+-- Self-spin only. This does not target or fling other players.
+spinButton.Activated:Connect(function()
+    if spinEnabled then
+        stopSpin()
+        status.Text = "● Self-spin stopped"
+        status.TextColor3 = MUTED
+        return
+    end
+
+    local root = getRoot()
+    if not root then
+        status.Text = "● Character unavailable"
+        return
+    end
+
+    spinEnabled = true
+    spinButton.Text = "Self-Spin: ON"
+    spinButton.BackgroundColor3 = Color3.fromRGB(35, 95, 175)
+    status.Text = "● Self-spin active"
+    status.TextColor3 = BLUE
+
+    -- Fast but bounded angular velocity; adjust SPIN_SPEED if needed.
+    local SPIN_SPEED = 100
+    spinConnection = RunService.Heartbeat:Connect(function()
+        local currentRoot = getRoot()
+        if not currentRoot or not currentRoot.Parent or not spinEnabled then
+            stopSpin()
+            return
+        end
+        currentRoot.AssemblyAngularVelocity = Vector3.new(0, SPIN_SPEED, 0)
+    end)
+end)
+
+distanceButton.Activated:Connect(function()
+    guardEnabled = not guardEnabled
+    distanceButton.Text = "Distance Guard: " .. (guardEnabled and "ON" or "OFF")
+    distanceButton.BackgroundColor3 = guardEnabled and BLUE or PANEL
+
+    if guardConnection then
+        guardConnection:Disconnect()
+        guardConnection = nil
+    end
+
+    if guardEnabled then
+        guardConnection = RunService.Heartbeat:Connect(function()
+            local root = getRoot()
+            if root and savedCFrame
+                and (root.Position - savedCFrame.Position).Magnitude > 2000 then
+                root.CFrame = savedCFrame
+                root.AssemblyLinearVelocity = Vector3.zero
+                root.AssemblyAngularVelocity = Vector3.zero
+                status.Text = "● Distance exceeded; returned"
+                status.TextColor3 = AMBER
+            end
+        end)
+        status.Text = "● Monitoring 2,000 studs"
+        status.TextColor3 = BLUE
+    else
+        status.Text = "● Distance guard disabled"
+        status.TextColor3 = MUTED
+    end
+end)
+
+-- Separate draggable target selector.
+local targetPanel = Instance.new("Frame")
+targetPanel.Name = "TargetPanel"
+targetPanel.Size = UDim2.fromOffset(300, 360)
+targetPanel.Position = UDim2.new(0.5, -150, 0.5, -180)
+targetPanel.BackgroundColor3 = BG
+targetPanel.BorderSizePixel = 0
+targetPanel.Visible = false
+targetPanel.ZIndex = 5
+targetPanel.Parent = gui
+corner(targetPanel, 12)
+
+local targetOutline = Instance.new("UIStroke")
+targetOutline.Color = Color3.fromRGB(48, 57, 76)
+targetOutline.Parent = targetPanel
+
+local targetHeader = Instance.new("Frame")
+targetHeader.Size = UDim2.new(1, 0, 0, 42)
+targetHeader.BackgroundColor3 = PANEL
+targetHeader.BorderSizePixel = 0
+targetHeader.Active = true
+targetHeader.ZIndex = 6
+targetHeader.Parent = targetPanel
+
+local targetTitle = Instance.new("TextLabel")
+targetTitle.Size = UDim2.new(1, -50, 1, 0)
+targetTitle.Position = UDim2.fromOffset(12, 0)
+targetTitle.BackgroundTransparency = 1
+targetTitle.Text = "TARGET SELECTOR"
+targetTitle.TextColor3 = TEXT
+targetTitle.Font = Enum.Font.GothamBold
+targetTitle.TextSize = 12
+targetTitle.TextXAlignment = Enum.TextXAlignment.Left
+targetTitle.ZIndex = 7
+targetTitle.Parent = targetHeader
+
+local hideTargets = makeButton(targetHeader, "HideTargets", "×",
+    UDim2.new(1, -36, 0, 7), UDim2.fromOffset(27, 27),
+    Color3.fromRGB(105, 39, 49), 7)
+
+local panelDragging = false
+local panelDragStart, panelStartPosition
+
+targetHeader.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        panelDragging = true
+        panelDragStart = input.Position
+        panelStartPosition = targetPanel.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if panelDragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - panelDragStart
+        targetPanel.Position = UDim2.new(
+            panelStartPosition.X.Scale, panelStartPosition.X.Offset + delta.X,
+            panelStartPosition.Y.Scale, panelStartPosition.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        panelDragging = false
+    end
+end)
+
+local search = Instance.new("TextBox")
+search.Name = "PlayerSearch"
+search.Position = UDim2.fromOffset(10, 51)
+search.Size = UDim2.new(1, -20, 0, 34)
+search.BackgroundColor3 = PANEL
+search.BorderSizePixel = 0
+search.PlaceholderText = "Search username or display name..."
+search.PlaceholderColor3 = MUTED
+search.Text = ""
+search.TextColor3 = TEXT
+search.Font = Enum.Font.Gotham
+search.TextSize = 11
+search.ClearTextOnFocus = false
+search.ZIndex = 6
+search.Parent = targetPanel
+corner(search, 7)
+
+local selectedLabel = Instance.new("TextLabel")
+selectedLabel.Position = UDim2.fromOffset(10, 90)
+selectedLabel.Size = UDim2.new(1, -20, 0, 28)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Text = "Selected: Nobody"
+selectedLabel.TextColor3 = MUTED
+selectedLabel.Font = Enum.Font.Gotham
+selectedLabel.TextSize = 10
+selectedLabel.TextWrapped = true
+selectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+selectedLabel.ZIndex = 6
+selectedLabel.Parent = targetPanel
+
+local playerList = Instance.new("ScrollingFrame")
+playerList.Name = "PlayerList"
+playerList.Position = UDim2.fromOffset(10, 121)
+playerList.Size = UDim2.new(1, -20, 0, 151)
+playerList.BackgroundColor3 = PANEL
+playerList.BorderSizePixel = 0
+playerList.ScrollBarThickness = 4
+playerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+playerList.CanvasSize = UDim2.new()
+playerList.ZIndex = 6
+playerList.Parent = targetPanel
+corner(playerList, 7)
+
+local playerListLayout = Instance.new("UIListLayout")
+playerListLayout.Padding = UDim.new(0, 5)
+playerListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+playerListLayout.Parent = playerList
+
+local playerListPadding = Instance.new("UIPadding")
+playerListPadding.PaddingTop = UDim.new(0, 5)
+playerListPadding.PaddingLeft = UDim.new(0, 5)
+playerListPadding.PaddingRight = UDim.new(0, 5)
+playerListPadding.Parent = playerList
+
+local spectateButton = makeButton(targetPanel, "SpectateTarget", "◉  Spectate Target",
+    UDim2.fromOffset(10, 282), UDim2.new(1, -20, 0, 30), BLUE, 6)
+local stopSpectateButton = makeButton(targetPanel, "StopSpectating", "Return Camera to Me",
+    UDim2.fromOffset(10, 319), UDim2.new(1, -20, 0, 28), PANEL, 6)
+
+local selectedPlayer
+local spectating = false
+
+local function restoreSpectating()
+    spectating = false
+    restoreCamera()
+end
+
+local function selectTarget(target)
+    selectedPlayer = target
+    if target then
+        selectedLabel.Text = "Selected: " .. target.DisplayName .. " (@" .. target.Name .. ")"
+    else
+        selectedLabel.Text = "Selected: Nobody"
+    end
+end
+
+local function rebuildPlayerList()
+    for _, child in ipairs(playerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    local query = string.lower(search.Text)
+    local matches = {}
+
+    for _, target in ipairs(Players:GetPlayers()) do
+        if target ~= player then
+            local username = string.lower(target.Name)
+            local displayName = string.lower(target.DisplayName)
+            if query == ""
+                or string.find(username, query, 1, true)
+                or string.find(displayName, query, 1, true) then
+                table.insert(matches, target)
+            end
+        end
+    end
+
+    table.sort(matches, function(a, b)
+        return string.lower(a.DisplayName) < string.lower(b.DisplayName)
+    end)
+
+    for index, target in ipairs(matches) do
+        local row = Instance.new("TextButton")
+        row.Name = "Player_" .. target.UserId
+        row.Size = UDim2.new(1, -5, 0, 43)
+        row.BackgroundColor3 = target == selectedPlayer
+            and Color3.fromRGB(36, 61, 98) or BG
+        row.BorderSizePixel = 0
+        row.Text = ""
+        row.LayoutOrder = index
+        row.ZIndex = 7
+        row.Parent = playerList
+        corner(row, 6)
+
+        local avatar = Instance.new("ImageLabel")
+        avatar.Size = UDim2.fromOffset(33, 33)
+        avatar.Position = UDim2.fromOffset(5, 5)
+        avatar.BackgroundTransparency = 1
+        avatar.ZIndex = 8
+        avatar.Parent = row
+        corner(avatar, 16)
+
+        task.spawn(function()
+            local ok, imageUrl = pcall(function()
+                return Players:GetUserThumbnailAsync(
+                    target.UserId,
+                    Enum.ThumbnailType.HeadShot,
+                    Enum.ThumbnailSize.Size100x100
+                )
+            end)
+            if ok and avatar.Parent then
+                avatar.Image = imageUrl
+            end
+        end)
+
+        local display = Instance.new("TextLabel")
+        display.Position = UDim2.fromOffset(45, 3)
+        display.Size = UDim2.new(1, -50, 0, 20)
+        display.BackgroundTransparency = 1
+        display.Text = target.DisplayName
+        display.TextColor3 = TEXT
+        display.Font = Enum.Font.GothamSemibold
+        display.TextSize = 11
+        display.TextXAlignment = Enum.TextXAlignment.Left
+        display.TextTruncate = Enum.TextTruncate.AtEnd
+        display.ZIndex = 8
+        display.Parent = row
+
+        local username = Instance.new("TextLabel")
+        username.Position = UDim2.fromOffset(45, 22)
+        username.Size = UDim2.new(1, -50, 0, 16)
+        username.BackgroundTransparency = 1
+        username.Text = "@" .. target.Name
+        username.TextColor3 = MUTED
+        username.Font = Enum.Font.Gotham
+        username.TextSize = 10
+        username.TextXAlignment = Enum.TextXAlignment.Left
+        username.ZIndex = 8
+        username.Parent = row
+
+        row.Activated:Connect(function()
+            if target.Parent == Players then
+                selectTarget(target)
+                rebuildPlayerList()
+            end
+        end)
+    end
+end
+
+targetButton.Activated:Connect(function()
+    targetPanel.Visible = not targetPanel.Visible
+    if targetPanel.Visible then
+        rebuildPlayerList()
+    end
+end)
+
+hideTargets.Activated:Connect(function()
+    targetPanel.Visible = false
+end)
+
+search:GetPropertyChangedSignal("Text"):Connect(rebuildPlayerList)
+Players.PlayerAdded:Connect(rebuildPlayerList)
+
+Players.PlayerRemoving:Connect(function(leaving)
+    if selectedPlayer == leaving then
+        selectTarget(nil)
+        restoreSpectating()
+    end
+    rebuildPlayerList()
+end)
+
+spectateButton.Activated:Connect(function()
+    if not selectedPlayer or selectedPlayer.Parent ~= Players then
+        selectedLabel.Text = "Select an available player first"
+        return
+    end
+
+    local humanoid = getHumanoid(selectedPlayer)
+    local camera = workspace.CurrentCamera
+    if humanoid and camera then
+        camera.CameraSubject = humanoid
+        spectating = true
+        status.Text = "● Spectating " .. selectedPlayer.DisplayName
+        status.TextColor3 = BLUE
+    else
+        selectedLabel.Text = "Target character unavailable"
+    end
+end)
+
+stopSpectateButton.Activated:Connect(function()
+    restoreSpectating()
+    status.Text = "● Camera returned to you"
+    status.TextColor3 = GREEN
+end)
+
+-- If the target respawns while spectating, follow their new Humanoid.
+local spectateConnection = RunService.Heartbeat:Connect(function()
+    if not spectating or not selectedPlayer then return end
+    local camera = workspace.CurrentCamera
+    local humanoid = getHumanoid(selectedPlayer)
+    if camera and humanoid and camera.CameraSubject ~= humanoid then
+        camera.CameraSubject = humanoid
+    end
+end)
+
+minimize.Activated:Connect(function()
+    minimized = not minimized
+    body.Visible = not minimized
+    targetPanel.Visible = targetPanel.Visible and not minimized
+    main.Size = minimized and UDim2.fromOffset(340, 48)
+        or UDim2.fromOffset(340, 390)
+    minimize.Text = minimized and "+" or "−"
+end)
+
+local function cleanup()
+    if closed then return end
+    closed = true
+    stopSpin()
+    if guardConnection then guardConnection:Disconnect() end
+    if spectateConnection then spectateConnection:Disconnect() end
+    restoreCamera()
+    gui:Destroy()
+end
+
+close.Activated:Connect(cleanup)
+
+player.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    if spectating then
+        restoreSpectating()
+    end
+    if spinEnabled then
+        stopSpin()
+    end
+end)
