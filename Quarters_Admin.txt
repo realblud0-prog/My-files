@@ -1,0 +1,537 @@
+– ===== Quarters Admin — Home & Commands Tabs =====
+
+local Players = game:GetService(“Players”) local TweenService =
+game:GetService(“TweenService”) local UserInputService =
+game:GetService(“UserInputService”) local Lighting =
+game:GetService(“Lighting”) local ReplicatedStorage =
+game:GetService(“ReplicatedStorage”) local RunService =
+game:GetService(“RunService”)
+
+local LocalPlayer = Players.LocalPlayer local PlayerGui =
+LocalPlayer:WaitForChild(“PlayerGui”)
+
+local PROP_MENU = ReplicatedStorage.RE[“1Clea1rTool1s”] local JAIL_PROP,
+JAIL_CAT = “BigCage”, “Big”
+
+local C = { Background = Color3.fromRGB(14, 15, 20), Panel =
+Color3.fromRGB(21, 22, 30), Secondary = Color3.fromRGB(29, 31, 42),
+Hover = Color3.fromRGB(38, 41, 56), Accent = Color3.fromRGB(91, 99,
+155), Border = Color3.fromRGB(54, 57, 75), Text = Color3.fromRGB(235,
+237, 245), Muted = Color3.fromRGB(135, 140, 158), Green =
+Color3.fromRGB(110, 170, 140), Red = Color3.fromRGB(200, 80, 80) }
+
+local function create(class, props, parent) local obj =
+Instance.new(class) for k, v in pairs(props or {}) do obj[k] = v end
+obj.Parent = parent return obj end local function round(parent, radius)
+return create(“UICorner”, { CornerRadius = UDim.new(0, radius or 10) },
+parent) end local function outline(parent, transparency) return
+create(“UIStroke”, { Color = C.Border, Thickness = 1, Transparency =
+transparency or 0 }, parent) end local function tween(object, duration,
+properties, style) TweenService:Create(object, TweenInfo.new(duration,
+style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+properties):Play() end
+
+– Remove old GUI local old = PlayerGui:FindFirstChild(“Quarters Admin”)
+if old then old:Destroy() end local oldBlur =
+Lighting:FindFirstChild(“QuartersOpeningBlur”) if oldBlur then
+oldBlur:Destroy() end
+
+local blur = create(“BlurEffect”, { Name = “QuartersOpeningBlur”, Size =
+28, Enabled = true }, Lighting)
+
+local gui = create(“ScreenGui”, { Name = “Quarters Admin”, ResetOnSpawn
+= false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling }, PlayerGui)
+local normalSize = UDim2.fromOffset(340, 390)
+
+local main = create(“Frame”, { Name = “Main”, AnchorPoint =
+Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size =
+UDim2.fromOffset(290, 170), BackgroundColor3 = C.Background,
+BackgroundTransparency = 0.25, ClipsDescendants = true }, gui)
+round(main, 16); outline(main, 0.15)
+
+local openingCover = create(“Frame”, { Size = UDim2.fromScale(1, 1),
+BackgroundColor3 = C.Background, BackgroundTransparency = 0.05,
+BorderSizePixel = 0, ZIndex = 20 }, main)
+
+– Header local header = create(“Frame”, { Name = “Header”, Size =
+UDim2.new(1, 0, 0, 64), BackgroundColor3 = C.Panel, BorderSizePixel = 0,
+Active = true }, main) round(header, 15) create(“ImageLabel”, { Size =
+UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(15, 14),
+BackgroundTransparency = 1, Image = “rbxassetid://85379612776466” },
+header) create(“TextLabel”, { Position = UDim2.fromOffset(60, 12), Size
+= UDim2.fromOffset(190, 22), BackgroundTransparency = 1, Text =
+“QUARTERS ADMIN”, TextColor3 = C.Text, Font = Enum.Font.GothamBlack,
+TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left }, header)
+create(“TextLabel”, { Position = UDim2.fromOffset(60, 34), Size =
+UDim2.fromOffset(190, 16), BackgroundTransparency = 1, Text = “CONTROL
+PANEL / LOCAL”, TextColor3 = C.Muted, Font = Enum.Font.GothamMedium,
+TextSize = 9, TextXAlignment = Enum.TextXAlignment.Left }, header)
+
+local minimize = create(“TextButton”, { Size = UDim2.fromOffset(30, 30),
+Position = UDim2.new(1, -43, 0, 17), BackgroundColor3 = C.Secondary,
+Text = “−”, TextColor3 = C.Text, TextSize = 20, Font =
+Enum.Font.GothamBold, AutoButtonColor = false }, header) round(minimize,
+10); outline(minimize, 0.6) create(“Frame”, { Position = UDim2.new(0, 0,
+0, 63), Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = C.Border,
+BorderSizePixel = 0 }, header)
+
+– Body & Sidebar local body = create(“Frame”, { Name = “Body”, Position
+= UDim2.fromOffset(0, 65), Size = UDim2.new(1, 0, 1, -65),
+BackgroundTransparency = 1 }, main) local sidebar = create(“Frame”, {
+Size = UDim2.new(0, 92, 1, 0), BackgroundColor3 = C.Panel,
+BorderSizePixel = 0 }, body) create(“TextLabel”, { Position =
+UDim2.fromOffset(12, 15), Size = UDim2.new(1, -20, 0, 20),
+BackgroundTransparency = 1, Text = “MENU”, TextColor3 = C.Muted,
+TextSize = 9, Font = Enum.Font.GothamBold, TextXAlignment =
+Enum.TextXAlignment.Left }, sidebar) create(“Frame”, { Position =
+UDim2.new(1, -1, 0, 0), Size = UDim2.new(0, 1, 1, 0), BackgroundColor3 =
+C.Border, BorderSizePixel = 0 }, sidebar)
+
+– Tabs local function makeTab(text, yPos) local btn =
+create(“TextButton”, { Position = UDim2.fromOffset(7, yPos), Size =
+UDim2.new(1, -14, 0, 36), BackgroundColor3 = C.Panel, Text = text,
+TextColor3 = C.Text, TextSize = 10, Font = Enum.Font.GothamBold,
+AutoButtonColor = false }, sidebar) round(btn, 9) local indicator =
+create(“Frame”, { Size = UDim2.new(0, 3, 0, 20), Position = UDim2.new(0,
+0, 0.5, -10), BackgroundColor3 = C.Accent, BorderSizePixel = 0, Visible
+= false }, btn) round(indicator, 3) return btn, indicator end
+
+local homeTab, homeIndicator = makeTab(“🏠 Home”, 43) local cmdTab,
+cmdIndicator = makeTab(“⌘ Commands”, 85)
+
+– Content Containers local homeContent = create(“Frame”, { Name =
+“HomeContent”, Position = UDim2.fromOffset(102, 0), Size = UDim2.new(1,
+-112, 1, 0), BackgroundTransparency = 1, Visible = false }, body)
+create(“UIListLayout”, { Padding = UDim.new(0, 12), SortOrder =
+Enum.SortOrder.LayoutOrder }, homeContent)
+
+local content = create(“ScrollingFrame”, { Name = “CommandsContent”,
+Position = UDim2.fromOffset(102, 0), Size = UDim2.new(1, -112, 1, 0),
+BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3,
+ScrollBarImageColor3 = C.Accent, AutomaticCanvasSize =
+Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Visible = true }, body)
+create(“UIPadding”, { PaddingTop = UDim.new(0, 14), PaddingBottom =
+UDim.new(0, 15), PaddingRight = UDim.new(0, 2) }, content)
+create(“UIListLayout”, { Padding = UDim.new(0, 9), SortOrder =
+Enum.SortOrder.LayoutOrder }, content)
+
+– Tab Switching Logic local function switchTab(activeTab,
+activeIndicator, activeContent, inactiveTab, inactiveIndicator,
+inactiveContent) activeTab.BackgroundColor3 = C.Secondary
+activeIndicator.Visible = true activeContent.Visible = true
+
+    inactiveTab.BackgroundColor3 = C.Panel
+    inactiveIndicator.Visible = false
+    inactiveContent.Visible = false
+
+end
+
+homeTab.MouseButton1Click:Connect(function() switchTab(homeTab,
+homeIndicator, homeContent, cmdTab, cmdIndicator, content) end)
+cmdTab.MouseButton1Click:Connect(function() switchTab(cmdTab,
+cmdIndicator, content, homeTab, homeIndicator, homeContent) end)
+
+– Default to Home Tab switchTab(homeTab, homeIndicator, homeContent,
+cmdTab, cmdIndicator, content)
+
+– ========================================== – HOME TAB UI –
+========================================== create(“UIPadding”, {
+PaddingTop = UDim.new(0, 14), PaddingRight = UDim.new(0, 5) },
+homeContent)
+
+– Profile Card local profileCard = create(“Frame”, { Size = UDim2.new(1,
+0, 0, 70), BackgroundColor3 = C.Panel, LayoutOrder = 1 }, homeContent)
+round(profileCard, 12); outline(profileCard, 0.5)
+
+local localAvatar = create(“ImageLabel”, { Size = UDim2.fromOffset(50,
+50), Position = UDim2.fromOffset(10, 10), BackgroundColor3 =
+C.Secondary, Image = “” }, profileCard) round(localAvatar, 11)
+
+– Load local avatar task.spawn(function() local success, image =
+pcall(function() return
+Players:GetUserThumbnailAsync(LocalPlayer.UserId,
+Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100) end) if
+success then localAvatar.Image = image end end)
+
+create(“TextLabel”, { Position = UDim2.fromOffset(70, 16), Size =
+UDim2.new(1, -80, 0, 20), BackgroundTransparency = 1, Text = “Welcome,”,
+TextColor3 = C.Muted, TextSize = 10, Font = Enum.Font.GothamMedium,
+TextXAlignment = Enum.TextXAlignment.Left }, profileCard)
+create(“TextLabel”, { Position = UDim2.fromOffset(70, 34), Size =
+UDim2.new(1, -80, 0, 20), BackgroundTransparency = 1, Text =
+LocalPlayer.DisplayName, TextColor3 = C.Text, TextSize = 14, Font =
+Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Left },
+profileCard)
+
+– Quick Guide Card local guideCard = create(“Frame”, { Size =
+UDim2.new(1, 0, 0, 160), BackgroundColor3 = C.Panel, LayoutOrder = 2 },
+homeContent) round(guideCard, 12); outline(guideCard, 0.5)
+
+create(“TextLabel”, { Position = UDim2.fromOffset(12, 10), Size =
+UDim2.new(1, -20, 0, 20), BackgroundTransparency = 1, Text = “HOW TO
+JAIL”, TextColor3 = C.Accent, TextSize = 11, Font =
+Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left },
+guideCard)
+
+local guideText = [[ 1. Go to the Commands tab. 2. Click a player in the
+list to select them. 3. Click “Jail”. A cage will drop on them. 4. The
+UI will say “Drop chair NOW!”. 5. Manually place ANY chair prop. 6. It
+will lock onto the target.
+
+To release, click the “Unjail” button. ]]
+
+create(“TextLabel”, { Position = UDim2.fromOffset(12, 35), Size =
+UDim2.new(1, -24, 1, -45), BackgroundTransparency = 1, Text = guideText,
+TextColor3 = C.Muted, TextSize = 10, Font = Enum.Font.GothamMedium,
+TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment =
+Enum.TextYAlignment.Top, TextWrapped = true }, guideCard)
+
+– ========================================== – COMMANDS TAB UI –
+========================================== local function label(text,
+size, color, parent) return create(“TextLabel”, { Size = UDim2.new(1, 0,
+0, size), BackgroundTransparency = 1, Text = text, TextColor3 = color or
+C.Text, TextSize = 11, Font = Enum.Font.GothamBold, TextXAlignment =
+Enum.TextXAlignment.Left }, parent) end local function makeButton(text,
+parent, height) local button = create(“TextButton”, { Size =
+UDim2.new(1, 0, 0, height or 34), BackgroundColor3 = C.Secondary, Text =
+text, TextColor3 = C.Text, TextSize = 11, Font =
+Enum.Font.GothamSemibold, AutoButtonColor = false }, parent)
+round(button, 10); outline(button, 0.55)
+button.MouseEnter:Connect(function() tween(button, 0.15, {
+BackgroundColor3 = C.Hover }) end) button.MouseLeave:Connect(function()
+tween(button, 0.15, { BackgroundColor3 = C.Secondary }) end)
+button.MouseButton1Down:Connect(function() tween(button, 0.08, {
+BackgroundColor3 = C.Accent }) end)
+button.MouseButton1Up:Connect(function() tween(button, 0.12, {
+BackgroundColor3 = C.Hover }) end) return button end
+
+label(“PLAYER SELECTION”, 18, C.Muted, content).LayoutOrder = 1 local
+search = create(“TextBox”, { Size = UDim2.new(1, 0, 0, 34),
+BackgroundColor3 = C.Panel, PlaceholderText = “Search players…”,
+PlaceholderColor3 = C.Muted, Text = ““, TextColor3 = C.Text, Font =
+Enum.Font.GothamMedium, TextSize = 11, ClearTextOnFocus = false,
+LayoutOrder = 2 }, content) round(search, 10); outline(search, 0.6)
+
+local playerList = create(“ScrollingFrame”, { Size = UDim2.new(1, 0, 0,
+108), BackgroundColor3 = C.Panel, BorderSizePixel = 0,
+ScrollBarThickness = 3, ScrollBarImageColor3 = C.Accent,
+AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(),
+LayoutOrder = 3 }, content) round(playerList, 11) create(“UIPadding”, {
+PaddingTop = UDim.new(0, 5), PaddingBottom = UDim.new(0, 5), PaddingLeft
+= UDim.new(0, 5), PaddingRight = UDim.new(0, 5) }, playerList)
+create(“UIListLayout”, { Padding = UDim.new(0, 4), SortOrder =
+Enum.SortOrder.LayoutOrder }, playerList)
+
+local selectedPanel = create(“Frame”, { Size = UDim2.new(1, 0, 0, 62),
+BackgroundColor3 = C.Panel, LayoutOrder = 4 }, content)
+round(selectedPanel, 12); outline(selectedPanel, 0.5) local
+selectedAvatar = create(“ImageLabel”, { Size = UDim2.fromOffset(44, 44),
+Position = UDim2.fromOffset(9, 9), BackgroundColor3 = C.Secondary, Image
+= “” }, selectedPanel) round(selectedAvatar, 11) local selectedName =
+create(“TextLabel”, { Position = UDim2.fromOffset(62, 12), Size =
+UDim2.new(1, -70, 0, 19), BackgroundTransparency = 1, Text = “No player
+selected”, TextColor3 = C.Text, TextSize = 11, Font =
+Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left },
+selectedPanel) local selectedUsername = create(“TextLabel”, { Position =
+UDim2.fromOffset(62, 33), Size = UDim2.new(1, -70, 0, 16),
+BackgroundTransparency = 1, Text = “Waiting for selection”, TextColor3 =
+C.Muted, TextSize = 9, Font = Enum.Font.GothamMedium, TextXAlignment =
+Enum.TextXAlignment.Left }, selectedPanel)
+
+local refresh = create(“TextButton”, { Size = UDim2.new(1, 0, 0, 32),
+BackgroundColor3 = C.Secondary, Text = ““, AutoButtonColor = false,
+LayoutOrder = 5 }, content) round(refresh, 10); outline(refresh, 0.55)
+local refreshLogo = create(”ImageLabel”, { Size = UDim2.fromOffset(19,
+19), Position = UDim2.new(0, 11, 0.5, -9), BackgroundTransparency = 1,
+Image = “rbxassetid://86604833779310”, ScaleType = Enum.ScaleType.Fit },
+refresh) create(“TextLabel”, { Position = UDim2.fromOffset(37, 0), Size
+= UDim2.new(1, -45, 1, 0), BackgroundTransparency = 1, Text = “Refresh
+Players”, TextColor3 = C.Text, TextSize = 11, Font =
+Enum.Font.GothamSemibold, TextXAlignment = Enum.TextXAlignment.Left },
+refresh) refresh.MouseEnter:Connect(function() tween(refresh, 0.15, {
+BackgroundColor3 = C.Hover }) end) refresh.MouseLeave:Connect(function()
+tween(refresh, 0.15, { BackgroundColor3 = C.Secondary }) end)
+
+label(“PLAYER ACTIONS”, 18, C.Muted, content).LayoutOrder = 6 local
+actionGrid = create(“Frame”, { Size = UDim2.new(1, 0, 0, 116),
+BackgroundTransparency = 1, LayoutOrder = 7 }, content)
+create(“UIGridLayout”, { CellSize = UDim2.new(0.5, -4, 0, 34),
+CellPadding = UDim2.fromOffset(8, 7), SortOrder =
+Enum.SortOrder.LayoutOrder }, actionGrid)
+
+local selectedPlayer local playerStates = {} local activeTraps = {}
+
+– ========================================== – JAIL ENGINE LOGIC –
+========================================== local function
+getVisibleButton(name) local pg =
+LocalPlayer:FindFirstChild(“PlayerGui”) local r = pg and
+pg:FindFirstChild(“NoResetGUIHandler”, true) and
+pg.NoResetGUIHandler:FindFirstChild(“PropMenuFilter”, true) if not r
+then return nil end for _, d in ipairs(r:GetDescendants()) do if d.Name
+== name and (d:IsA(“ImageButton”) or d:IsA(“TextButton”)) and d.Visible
+and d.AbsoluteSize.Magnitude > 0 then return d end end return nil end
+
+local function forceClick(btn) local fired = 0 local ok, conns =
+pcall(getconnections, btn.MouseButton1Click) if ok and conns then for _,
+c in ipairs(conns) do if c.Function then pcall(c.Function); fired =
+fired + 1 end end end pcall(function() btn.MouseButton1Click:Fire() end)
+return fired > 0 end
+
+local function onJail(target) if not target or activeTraps[target] then
+return end task.spawn(function() selectedName.Text = “Preparing…”
+selectedName.TextColor3 = C.Accent
+
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hum = char:WaitForChild("Humanoid")
+
+        local tool = char:FindFirstChild("PropMaker") or (LocalPlayer:FindFirstChild("Backpack") and LocalPlayer.Backpack:FindFirstChild("PropMaker"))
+        if not tool then
+            local getTool = ReplicatedStorage.RE["1Too1l"]
+            getTool:InvokeServer("PickingTools", "PropMaker")
+            task.wait(0.5)
+            tool = LocalPlayer.Backpack:FindFirstChild("PropMaker")
+        end
+        if not tool then selectedName.Text = "Error: No PropMaker"; return end
+        if tool.Parent ~= char then pcall(function() hum:EquipTool(tool) end); task.wait(0.3) end
+
+        local placer = tool:FindFirstChild("Tool_PropMake")
+        if not placer then selectedName.Text = "Error: No placer"; return end
+
+        PROP_MENU:FireServer("OpenPropMenu")
+        task.wait(0.8)
+
+        local cageBtn = getVisibleButton(JAIL_PROP)
+        if not cageBtn then
+            local catBtn = getVisibleButton(JAIL_CAT)
+            if catBtn then forceClick(catBtn); task.wait(0.4) end
+            cageBtn = getVisibleButton(JAIL_PROP)
+        end
+
+        if not cageBtn then selectedName.Text = "Error: BigCage not found"; return end
+
+        local tRoot = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then selectedName.Text = "Error: Target lost"; return end
+
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = { char, target.Character }
+        params.IgnoreWater = true
+        local hit = workspace:Raycast(tRoot.Position + Vector3.new(0, 5, 0), Vector3.new(0, -30, 0), params)
+
+        if not hit then selectedName.Text = "Error: No ground"; return end
+
+        forceClick(cageBtn)
+        task.wait(0.5) 
+        placer:FireServer(hit.Instance, hit.Position)
+
+        local CAGE_CENTER = hit.Position 
+
+        task.wait(0.8)
+
+        local knownProps = {}
+        local wsCom = workspace:FindFirstChild("WorkspaceCom")
+        if wsCom then
+            for _, cat in pairs(wsCom:GetChildren()) do
+                for _, p in pairs(cat:GetChildren()) do
+                    if p:FindFirstChild("SetCurrentCFrame") then
+                        knownProps[p] = true 
+                    end
+                end
+            end
+        end
+
+        selectedName.Text = "Drop chair NOW!"
+        selectedName.TextColor3 = C.Green
+
+        local chairRemote = nil
+
+        while not chairRemote do
+            task.wait(0.1)
+            if wsCom then
+                for _, cat in pairs(wsCom:GetChildren()) do
+                    for _, p in pairs(cat:GetChildren()) do
+                        if not knownProps[p] and p:FindFirstChild("SetCurrentCFrame") then
+                            chairRemote = p.SetCurrentCFrame
+                            break
+                        end
+                    end
+                    if chairRemote then break end
+                end
+            end
+        end
+
+        selectedName.Text = "TRAPPED: " .. target.Name
+        selectedName.TextColor3 = C.Red
+
+        local lastSitTime = 0
+
+        activeTraps[target] = RunService.Heartbeat:Connect(function()
+            if not chairRemote then return end
+            if not target or not target.Character then return end
+
+            local tChar = target.Character
+            local tRoot = tChar:FindFirstChild("HumanoidRootPart")
+            local tHum = tChar:FindFirstChildOfClass("Humanoid")
+            if not tRoot or not tHum then return end
+
+            if tHum.Sit then
+                if tick() - lastSitTime > 0.3 then
+                    lastSitTime = tick()
+                    local fPos = CFrame.new(CAGE_CENTER + Vector3.new(0, 1.5, 0))
+                    task.spawn(function() 
+                        pcall(function() chairRemote:InvokeServer(fPos) end) 
+                    end)
+                end
+            else
+                local fPos = tRoot.CFrame * CFrame.new(0, -3.2, 0)
+                task.spawn(function() 
+                    pcall(function() chairRemote:InvokeServer(fPos) end) 
+                end)
+            end
+        end)
+    end)
+
+end
+
+local function onUnjail(target) if not target or not activeTraps[target]
+then return end activeTraps[target]:Disconnect() activeTraps[target] =
+nil selectedName.Text = “Released” .. target.Name
+selectedName.TextColor3 = C.Text pcall(function()
+PROP_MENU:FireServer(“ClearAllProps”) end) end
+
+local function onFling(target) selectedName.Text = “Flinging” ..
+target.Name .. “…” task.delay(2, function() if selectedName.Text ==
+“Flinging” .. target.Name .. “…” then selectedName.Text = target.Name
+end end) end local function onUnfling(target) selectedName.Text =
+target.Name end local function onKill(target) end local function
+onView(target) end local function onTeleport(target) if target and
+target.Character and LocalPlayer.Character then
+LocalPlayer.Character:PivotTo(target.Character.HumanoidRootPart.CFrame *
+CFrame.new(0, 0, 3)) end end local function onBring(target) if target
+and target.Character and LocalPlayer.Character then
+target.Character:PivotTo(LocalPlayer.Character.HumanoidRootPart.CFrame *
+CFrame.new(0, 0, -3)) end end
+
+local actions = { { name = “Jail”, activeName = “Unjail”, func = onJail,
+undoFunc = onUnjail }, { name = “Fling”, activeName = “Unfling”, func =
+onFling, undoFunc = onUnfling }, { name = “Bring”, activeName = “Bring”,
+func = onBring, undoFunc = nil }, { name = “Teleport”, activeName =
+“Teleport”, func = onTeleport, undoFunc = nil }, { name = “Kill”,
+activeName = “Kill”, func = onKill, undoFunc = nil }, { name = “View”,
+activeName = “View”, func = onView, undoFunc = nil } }
+
+local actionButtons = {}
+
+for index, action in ipairs(actions) do local button =
+makeButton(action.name, actionGrid, 34) button.LayoutOrder = index
+actionButtons[action.name] = button
+
+    button.MouseButton1Click:Connect(function()
+        if not selectedPlayer then return end
+        if not playerStates[selectedPlayer] then playerStates[selectedPlayer] = {} end
+
+        local isActive = playerStates[selectedPlayer][action.name]
+
+        if isActive then
+            if action.undoFunc then action.undoFunc(selectedPlayer) end
+            playerStates[selectedPlayer][action.name] = false
+            button.Text = action.name
+            button.TextColor3 = C.Text
+        else
+            action.func(selectedPlayer)
+            playerStates[selectedPlayer][action.name] = true
+
+            if action.undoFunc then 
+                button.Text = action.activeName
+                button.TextColor3 = C.Red
+            end
+        end
+    end)
+
+end
+
+local function selectPlayer(target) selectedPlayer = target
+selectedName.Text = target.DisplayName selectedName.TextColor3 = C.Text
+selectedUsername.Text = “@” .. target.Name
+
+    local success, image = pcall(function()
+        return Players:GetUserThumbnailAsync(target.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+    end)
+    if success then selectedAvatar.Image = image end
+
+    tween(selectedPanel, 0.15, { BackgroundColor3 = C.Secondary })
+
+    for _, action in ipairs(actions) do
+        local button = actionButtons[action.name]
+        local isActive = playerStates[target] and playerStates[target][action.name]
+        if isActive then
+            button.Text = action.activeName
+            button.TextColor3 = C.Red
+        else
+            button.Text = action.name
+            button.TextColor3 = C.Text
+        end
+    end
+
+end
+
+local function refreshPlayers() for , child in
+ipairs(playerList:GetChildren()) do if child:IsA(“TextButton”) then
+child:Destroy() end end local query = string.lower(search.Text) for ,
+target in ipairs(Players:GetPlayers()) do if target ~= LocalPlayer then
+local display = string.lower(target.DisplayName) local username =
+string.lower(target.Name) if query == “” or string.find(display, query,
+1, true) or string.find(username, query, 1, true) then local row =
+create(“TextButton”, { Size = UDim2.new(1, 0, 0, 32), BackgroundColor3 =
+C.Secondary, Text = target.DisplayName .. ” @” .. target.Name,
+TextColor3 = C.Text, TextSize = 10, Font = Enum.Font.GothamMedium,
+AutoButtonColor = false }, playerList) round(row, 9)
+row.MouseEnter:Connect(function() tween(row, 0.12, { BackgroundColor3 =
+C.Hover }) end) row.MouseLeave:Connect(function() tween(row, 0.12, {
+BackgroundColor3 = C.Secondary }) end)
+row.MouseButton1Click:Connect(function() selectPlayer(target) end) end
+end end end
+
+search:GetPropertyChangedSignal(“Text”):Connect(refreshPlayers)
+refresh.MouseButton1Click:Connect(function() tween(refreshLogo, 0.35, {
+Rotation = refreshLogo.Rotation + 180 }) refreshPlayers() end)
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(function(target) if selectedPlayer ==
+target then selectedPlayer = nil selectedName.Text = “No player
+selected” selectedUsername.Text = “Waiting for selection”
+selectedAvatar.Image = “” for _, action in ipairs(actions) do
+actionButtons[action.name].Text = action.name
+actionButtons[action.name].TextColor3 = C.Text end end
+playerStates[target] = nil if activeTraps[target] then
+activeTraps[target]:Disconnect(); activeTraps[target] = nil end
+refreshPlayers() end)
+
+– Draggable local dragging, dragStart, startPosition
+header.InputBegan:Connect(function(input) if input.UserInputType ==
+Enum.UserInputType.MouseButton1 or input.UserInputType ==
+Enum.UserInputType.Touch then dragging = true; dragStart =
+input.Position; startPosition = main.Position
+input.Changed:Connect(function() if input.UserInputState ==
+Enum.UserInputState.End then dragging = false end end) end end)
+UserInputService.InputChanged:Connect(function(input) if dragging and
+(input.UserInputType == Enum.UserInputType.MouseMovement or
+input.UserInputType == Enum.UserInputType.Touch) then local delta =
+input.Position - dragStart main.Position =
+UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X,
+startPosition.Y.Scale, startPosition.Y.Offset + delta.Y) end end)
+
+– Minimize local minimized = false local smallSize =
+UDim2.fromOffset(340, 64) minimize.MouseButton1Click:Connect(function()
+minimized = not minimized if minimized then minimize.Text = “+”;
+body.Visible = false tween(main, 0.35, { Size = smallSize }) else
+minimize.Text = “−” tween(main, 0.4, { Size = normalSize },
+Enum.EasingStyle.Back) task.wait(0.15); body.Visible = true end end)
+
+– Opening animation task.spawn(function() task.wait(0.15) tween(main,
+0.65, { Size = normalSize, BackgroundTransparency = 0 },
+Enum.EasingStyle.Back) tween(blur, 1.1, { Size = 0 })
+tween(openingCover, 0.8, { BackgroundTransparency = 1 }) task.wait(1.15)
+if blur and blur.Parent then blur:Destroy() end if openingCover and
+openingCover.Parent then openingCover:Destroy() end end)
+
+refreshPlayers()
