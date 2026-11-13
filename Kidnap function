@@ -1,0 +1,219 @@
+return function(target, selectedName, activeVanTraps, CAR_SPAWN, LocalPlayer)
+    local RunService = game:GetService("RunService")
+    
+    if not target or activeVanTraps[target] then return end
+    
+    task.spawn(function()
+        selectedName.Text = "Spawning Van..."
+        selectedName.TextColor3 = Color3.fromRGB(91, 99, 155)
+        
+        local oldVans = {}
+        for _, v in ipairs(workspace:GetDescendants()) do
+            if v:IsA("Model") and v:FindFirstChildWhichIsA("VehicleSeat", true) then 
+                oldVans[v] = true 
+            end
+        end
+        
+        CAR_SPAWN:FireServer("PickingCar", "Van", "Work")
+        
+        local myVan = nil
+        for i = 1, 50 do 
+            task.wait(0.1)
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v:FindFirstChildWhichIsA("VehicleSeat", true) and not oldVans[v] then 
+                    myVan = v; break 
+                end
+            end
+            if myVan then break end
+        end
+        
+        if not myVan then 
+            selectedName.Text = "Error: No Van"
+            return 
+        end
+        task.wait(1.0) 
+        
+        activeVanTraps[target] = { connections = {}, van = myVan }
+        
+        local vanRoot = myVan.PrimaryPart or myVan:FindFirstChildWhichIsA("BasePart")
+        for _, part in ipairs(myVan:GetDescendants()) do 
+            if part:IsA("BasePart") then 
+                part.Anchored = false
+                pcall(function() part:SetNetworkOwner(LocalPlayer) end) 
+            end 
+        end
+        
+        local tRoot = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then return end
+        
+        local spawnPos = tRoot.Position + (tRoot.CFrame.RightVector * 40) + Vector3.new(0, 3, 0)
+        myVan:PivotTo(CFrame.lookAt(spawnPos, tRoot.Position))
+        task.wait(0.2) 
+        
+        local bp = Instance.new("BodyPosition")
+        bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bp.P = 50000; bp.D = 5000
+        bp.Position = vanRoot.Position
+        bp.Parent = vanRoot
+        
+        local bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bg.P = 50000; bg.D = 5000
+        bg.CFrame = vanRoot.CFrame
+        bg.Parent = vanRoot
+        
+        selectedName.Text = "Van Approaching..."
+        
+        local driveConn
+        driveConn = RunService.Heartbeat:Connect(function()
+            if not target or not target.Character then driveConn:Disconnect() return end
+            
+            for _, part in ipairs(myVan:GetDescendants()) do 
+                if part:IsA("BasePart") then pcall(function() part:SetNetworkOwner(LocalPlayer) end) end 
+            end
+            
+            local tR = target.Character:FindFirstChild("HumanoidRootPart")
+            if not tR then return end
+            local distance = (vanRoot.Position - tR.Position).Magnitude
+            
+            if distance > 8 then
+                local targetPos = Vector3.new(tR.Position.X, vanRoot.Position.Y, tR.Position.Z)
+                bp.Position = targetPos
+                bg.CFrame = CFrame.lookAt(vanRoot.Position, targetPos)
+            else
+                bp:Destroy(); bg:Destroy(); driveConn:Disconnect()
+                
+                selectedName.Text = "Drop sofa to SNATCH!"
+                selectedName.TextColor3 = Color3.fromRGB(110, 170, 140)
+                
+                local knownProps = {}
+                local wsCom = workspace:FindFirstChild("WorkspaceCom")
+                if wsCom then 
+                    for _, cat in pairs(wsCom:GetChildren()) do 
+                        for _, p in pairs(cat:GetChildren()) do 
+                            if p:FindFirstChild("SetCurrentCFrame") then knownProps[p] = true end 
+                        end 
+                    end 
+                end
+                
+                local triggerRemote = nil
+                local waitTime = 0
+                while not triggerRemote and waitTime < 15 do
+                    task.wait(0.1); waitTime = waitTime + 0.1
+                    if wsCom then 
+                        for _, cat in pairs(wsCom:GetChildren()) do 
+                            for _, p in pairs(cat:GetChildren()) do 
+                                if not knownProps[p] and p:FindFirstChild("SetCurrentCFrame") then 
+                                    triggerRemote = p.SetCurrentCFrame; break 
+                                end 
+                            end 
+                            if triggerRemote then break end 
+                        end 
+                    end
+                end
+                
+                if not triggerRemote then selectedName.Text = "Trap failed"; return end
+                selectedName.Text = "SNATCHING..."
+                selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+                
+                local isSnapped = false
+                local grabbedRemote = triggerRemote
+                
+                local trackConn
+                trackConn = RunService.Heartbeat:Connect(function()
+                    if not target or not target.Character then return end
+                    local tHum = target.Character:FindFirstChildOfClass("Humanoid")
+                    local tR = target.Character:FindFirstChild("HumanoidRootPart")
+                    if not tHum or not tR then return end
+                    
+                    local cargoPos = myVan:GetPivot() * CFrame.new(0, 2, -6)
+                    
+                    if not isSnapped then
+                        local grabPos = CFrame.new(tR.Position - Vector3.new(0, 2.5, 0))
+                        task.spawn(function() pcall(function() grabbedRemote:InvokeServer(grabPos) end) end)
+                        isSnapped = true
+                        
+                        selectedName.Text = "YANKED! DRIVING AWAY..."
+                        
+                        local fleeBP = Instance.new("BodyPosition")
+                        fleeBP.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                        fleeBP.P = 50000; fleeBP.D = 5000
+                        fleeBP.Position = vanRoot.Position
+                        fleeBP.Parent = vanRoot
+                        
+                        local fleeBG = Instance.new("BodyGyro")
+                        fleeBG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                        fleeBG.P = 50000; fleeBG.D = 5000
+                        fleeBG.CFrame = vanRoot.CFrame
+                        fleeBG.Parent = vanRoot
+                        
+                        local fleeStart = tick()
+                        local fleeConn
+                        fleeConn = RunService.Heartbeat:Connect(function()
+                            if not isSnapped or not myVan or not myVan.Parent then fleeConn:Disconnect() return end
+                            for _, part in ipairs(myVan:GetDescendants()) do 
+                                if part:IsA("BasePart") then pcall(function() part:SetNetworkOwner(LocalPlayer) end) end 
+                            end
+                            
+                            if tick() - fleeStart < 10 then
+                                fleeBP.Position = fleeBP.Position + (vanRoot.CFrame.LookVector * 1.5)
+                                fleeBG.CFrame = CFrame.lookAt(vanRoot.Position, vanRoot.Position + vanRoot.CFrame.LookVector)
+                            else
+                                fleeBP:Destroy(); fleeBG:Destroy(); fleeConn:Disconnect()
+                                
+                                selectedName.Text = "INFINITE VOID EXECUTION..."
+                                for _, part in ipairs(myVan:GetDescendants()) do 
+                                    if part:IsA("BasePart") then 
+                                        part.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                                        part.AssemblyAngularVelocity = Vector3.new(0,0,0)
+                                        part.Anchored = true 
+                                    end 
+                                end
+                                
+                                local voidCFrame = CFrame.new(0, -50000, 0)
+                                myVan:PivotTo(voidCFrame)
+                                
+                                local isVoided = false
+                                task.spawn(function()
+                                    while not isVoided do
+                                        if not target or not target.Character then break end
+                                        local currentRoot = target.Character:FindFirstChild("HumanoidRootPart")
+                                        if not currentRoot then break end
+                                        
+                                        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                                        local isDeep = currentRoot.Position.Y <= -50000
+                                        local isFar = myRoot and (currentRoot.Position - myRoot.Position).Magnitude > 20000
+                                        
+                                        if isDeep or isFar then isVoided = true; break end
+                                        
+                                        local speed = tick() * 255
+                                        local randomSpin = CFrame.Angles(math.sin(speed) * 5, math.cos(speed) * 5, math.tan(speed) * 0.5)
+                                        local killPos = currentRoot.CFrame * randomSpin
+                                        
+                                        task.spawn(function() pcall(function() grabbedRemote:InvokeServer(killPos) end) end)
+                                        task.spawn(function() pcall(function() grabbedRemote:InvokeServer(voidCFrame) end) end)
+                                        task.wait(0.05)
+                                    end
+                                    selectedName.Text = "TARGET EXECUTED & VOIDED"
+                                    selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+                                end)
+                            end
+                        end)
+                        table.insert(activeVanTraps[target].connections, fleeConn)
+                    else
+                        if tHum.Sit then
+                            task.spawn(function() pcall(function() grabbedRemote:InvokeServer(cargoPos) end) end)
+                        else
+                            local feetPos = CFrame.new(tR.Position - Vector3.new(0, 3.2, 0))
+                            task.spawn(function() pcall(function() grabbedRemote:InvokeServer(feetPos) end) end)
+                            task.wait(0.03)
+                            task.spawn(function() pcall(function() grabbedRemote:InvokeServer(cargoPos) end) end)
+                        end
+                    end
+                end)
+                table.insert(activeVanTraps[target].connections, trackConn)
+            end
+        end)
+        table.insert(activeVanTraps[target].connections, driveConn)
+    end)
+end
