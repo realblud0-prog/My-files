@@ -1,4 +1,4 @@
--- ===== Quarters Admin — Ultimate Edition + Kidnap Trap =====
+-- ===== Quarters Admin — Ultimate Edition + Kidnap Trap (Fixed) =====
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,8 +10,10 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local PROP_MENU = ReplicatedStorage.RE["1Clea1rTool1s"]
-local CAR_SPAWN = ReplicatedStorage.RE["1Ca1r"]
+-- USE WAITFORCHILD TO PREVENT INSTANT ERRORS ON LOAD
+local RE = ReplicatedStorage:WaitForChild("RE")
+local PROP_MENU = RE:WaitForChild("1Clea1rTool1s")
+local CAR_SPAWN = RE:WaitForChild("1Ca1r")
 local JAIL_PROP, JAIL_CAT = "BigCage", "Big"
 
 local C = {
@@ -275,6 +277,9 @@ local function onVanTrap(target)
         if not myVan then selectedName.Text = "Error: No Van"; return end
         task.wait(1.0) 
         
+        -- INITIALIZE THE TRACKER HERE TO PREVENT CRASHES
+        activeVanTraps[target] = { connections = {}, van = myVan }
+        
         local vanRoot = myVan.PrimaryPart or myVan:FindFirstChildWhichIsA("BasePart")
         for _, part in ipairs(myVan:GetDescendants()) do if part:IsA("BasePart") then part.Anchored = false; pcall(function() part:SetNetworkOwner(LocalPlayer) end) end end
         
@@ -385,10 +390,8 @@ local function onVanTrap(target)
                                     end
                                     selectedName.Text = "TARGET EXECUTED & VOIDED"; selectedName.TextColor3 = C.Red
                                 end)
-                                table.insert(activeVanTraps[target].connections, voidLoop)
                             end
                         end)
-                        table.insert(activeVanTraps[target].connections, fleeConn)
                     else
                         if tHum.Sit then
                             task.spawn(function() pcall(function() grabbedRemote:InvokeServer(cargoPos) end) end)
@@ -400,10 +403,9 @@ local function onVanTrap(target)
                         end
                     end
                 end)
-                table.insert(activeVanTraps[target].connections, trackConn)
             end
         end)
-        activeVanTraps[target] = { connections = {driveConn}, van = myVan }
+        table.insert(activeVanTraps[target].connections, driveConn)
     end)
 end
 
