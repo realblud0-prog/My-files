@@ -1,0 +1,101 @@
+return function(target, selectedName, activeTraps, PROP_MENU, JAIL_PROP, JAIL_CAT, LocalPlayer, ReplicatedStorage, getVisibleButton, forceClick)
+    local RunService = game:GetService("RunService")
+    if not target or activeTraps[target] then return end
+    
+    task.spawn(function()
+        selectedName.Text = "Preparing..."
+        selectedName.TextColor3 = Color3.fromRGB(91, 99, 155)
+        
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hum = char:WaitForChild("Humanoid")
+        
+        local tool = char:FindFirstChild("PropMaker") or (LocalPlayer:FindFirstChild("Backpack") and LocalPlayer.Backpack:FindFirstChild("PropMaker"))
+        if not tool then 
+            ReplicatedStorage.RE["1Too1l"]:InvokeServer("PickingTools", "PropMaker")
+            task.wait(0.5)
+            tool = LocalPlayer.Backpack:FindFirstChild("PropMaker") 
+        end
+        if not tool then selectedName.Text = "Error: No PropMaker"; return end
+        if tool.Parent ~= char then pcall(function() hum:EquipTool(tool) end); task.wait(0.3) end
+        
+        local placer = tool:FindFirstChild("Tool_PropMake")
+        if not placer then selectedName.Text = "Error: No placer"; return end
+
+        PROP_MENU:FireServer("OpenPropMenu"); task.wait(0.8)
+        
+        local cageBtn = getVisibleButton(JAIL_PROP)
+        if not cageBtn then 
+            local catBtn = getVisibleButton(JAIL_CAT)
+            if catBtn then forceClick(catBtn); task.wait(0.4) end
+            cageBtn = getVisibleButton(JAIL_PROP) 
+        end
+        if not cageBtn then selectedName.Text = "Error: BigCage not found"; return end
+        
+        local tRoot = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then selectedName.Text = "Error: Target lost"; return end
+        
+        local params = RaycastParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = { char, target.Character }
+        params.IgnoreWater = true
+        
+        local hit = workspace:Raycast(tRoot.Position + Vector3.new(0, 5, 0), Vector3.new(0, -30, 0), params)
+        if not hit then selectedName.Text = "Error: No ground"; return end
+        
+        forceClick(cageBtn); task.wait(0.5)
+        placer:FireServer(hit.Instance, hit.Position)
+        local CAGE_CENTER = hit.Position 
+        task.wait(0.8)
+        
+        local knownProps = {}
+        local wsCom = workspace:FindFirstChild("WorkspaceCom")
+        if wsCom then 
+            for _, cat in pairs(wsCom:GetChildren()) do 
+                for _, p in pairs(cat:GetChildren()) do 
+                    if p:FindFirstChild("SetCurrentCFrame") then knownProps[p] = true end 
+                end 
+            end 
+        end
+        
+        selectedName.Text = "Drop chair NOW!"
+        selectedName.TextColor3 = Color3.fromRGB(110, 170, 140)
+        
+        local chairRemote = nil
+        while not chairRemote do
+            task.wait(0.1)
+            if wsCom then 
+                for _, cat in pairs(wsCom:GetChildren()) do 
+                    for _, p in pairs(cat:GetChildren()) do 
+                        if not knownProps[p] and p:FindFirstChild("SetCurrentCFrame") then 
+                            chairRemote = p.SetCurrentCFrame; break 
+                        end 
+                    end 
+                    if chairRemote then break end 
+                end 
+            end
+        end
+        
+        selectedName.Text = "TRAPPED: " .. target.Name
+        selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+
+        local lastSitTime = 0
+        activeTraps[target] = RunService.Heartbeat:Connect(function()
+            if not chairRemote or not target or not target.Character then return end
+            local tChar = target.Character
+            local tRoot = tChar:FindFirstChild("HumanoidRootPart")
+            local tHum = tChar:FindFirstChildOfClass("Humanoid")
+            if not tRoot or not tHum then return end
+
+            if tHum.Sit then
+                if tick() - lastSitTime > 0.3 then
+                    lastSitTime = tick()
+                    local fPos = CFrame.new(CAGE_CENTER + Vector3.new(0, 1.5, 0))
+                    task.spawn(function() pcall(function() chairRemote:InvokeServer(fPos) end) end)
+                end
+            else
+                local fPos = tRoot.CFrame * CFrame.new(0, -3.2, 0)
+                task.spawn(function() pcall(function() chairRemote:InvokeServer(fPos) end) end)
+            end
+        end)
+    end)
+end
