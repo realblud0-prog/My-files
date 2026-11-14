@@ -44,7 +44,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         if prop then
             local remote = prop:FindFirstChild("SetCurrentCFrame")
             
-            -- FORCE UNANCHOR: The server ignores the remote if the prop is anchored.
+            -- FORCE UNANCHOR & NETWORK OWNERSHIP
             for _, part in ipairs(prop:GetDescendants()) do
                 if part:IsA("BasePart") then 
                     part.Anchored = false 
