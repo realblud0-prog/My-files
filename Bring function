@@ -40,7 +40,6 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local myRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not tRoot or not myRoot then return end
 
-        -- EXACT QUANTUM MATH (Targeting LocalPlayer instead of Void)
         local predictedPos = myRoot.CFrame
 
         local remote = remoteCache[currentIdx]
