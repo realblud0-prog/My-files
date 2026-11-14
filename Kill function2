@@ -44,7 +44,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         if prop then
             local remote = prop:FindFirstChild("SetCurrentCFrame")
             
-            -- FORCE UNANCHOR & NETWORK OWNERSHIP
+            -- THE FIX: Unanchor the prop so the server accepts the move
             for _, part in ipairs(prop:GetDescendants()) do
                 if part:IsA("BasePart") then 
                     part.Anchored = false 
