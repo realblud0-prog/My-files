@@ -1,0 +1,68 @@
+return function(target, selectedName, activeTraps, LocalPlayer)
+    local RunService = game:GetService("RunService")
+    
+    if not target or not target.Character then return end
+    if activeTraps[target] then activeTraps[target]:Disconnect() end
+
+    local remotes = {}
+    local wsCom = workspace:FindFirstChild("WorkspaceCom")
+    if wsCom then 
+        for _, cat in pairs(wsCom:GetChildren()) do 
+            for _, p in pairs(cat:GetChildren()) do 
+                if p:FindFirstChild("SetCurrentCFrame") then 
+                    table.insert(remotes, p.SetCurrentCFrame) 
+                end 
+            end 
+        end 
+    end
+
+    if #remotes == 0 then 
+        selectedName.Text = "Place a prop first!"
+        selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+        return 
+    end
+
+    selectedName.Text = "FLINGING: " .. target.Name
+    selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+
+    local currentIdx = 1
+    local NETWORK_TICK_RATE = 0.033
+    local LAST_SEND_TIME = {}
+    local NETWORK_STATE = {}
+
+    local function fireMove(remote, pos)
+        local t = tick()
+        if t - (LAST_SEND_TIME[remote] or 0) >= NETWORK_TICK_RATE and not NETWORK_STATE[remote] then
+            LAST_SEND_TIME[remote] = t
+            NETWORK_STATE[remote] = true
+            task.spawn(function()
+                local completed = false
+                task.spawn(function()
+                    pcall(function() remote:InvokeServer(pos) end)
+                    completed = true
+                    NETWORK_STATE[remote] = false
+                end)
+                task.delay(0.05, function()
+                    if not completed then NETWORK_STATE[remote] = false end
+                end)
+            end)
+        end
+    end
+
+    activeTraps[target] = RunService.Heartbeat:Connect(function()
+        if not target or not target.Character then return end
+        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then return end
+
+        local remote = remotes[currentIdx]
+        if remote then
+            local speed = tick() * 255
+            local randomSpin = CFrame.Angles(math.sin(speed) * 5, math.cos(speed) * 5, math.tan(speed) * 0.5)
+            
+            -- The Quantum Fling: Blast the prop +5000 studs into the sky
+            local flingPos = CFrame.new(tRoot.Position.X, tRoot.Position.Y + 5000, tRoot.Position.Z) * randomSpin
+            fireMove(remote, flingPos)
+        end
+        currentIdx = (currentIdx % #remotes) + 1
+    end)
+end
