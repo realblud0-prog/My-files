@@ -3,19 +3,20 @@ return function(target, selectedName, activeTraps, LocalPlayer)
     if not target or not target.Character then return end
     if activeTraps[target] then activeTraps[target]:Disconnect() end
 
-    local remotes = {}
+    local remoteCache = {}
     local wsCom = workspace:FindFirstChild("WorkspaceCom")
     if wsCom then 
         for _, cat in pairs(wsCom:GetChildren()) do 
             for _, p in pairs(cat:GetChildren()) do 
-                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remotes, p.SetCurrentCFrame) end 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p.SetCurrentCFrame) end 
             end 
         end 
     end
 
-    if #remotes == 0 then selectedName.Text = "No props found!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
+    if #remoteCache == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
 
     selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    
     local currentIdx = 1
     local NETWORK_TICK_RATE = 0.033
     local LAST_SEND_TIME = {}
@@ -39,14 +40,27 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local tHum = target.Character:FindFirstChildOfClass("Humanoid")
         if not tRoot or not tHum then return end
 
-        local remote = remotes[currentIdx]
-        if remote then
-            local pos = tRoot.CFrame
-            if tHum.Sit then
-                pos = CFrame.new(tRoot.Position.X, -50000, tRoot.Position.Z)
-            end
-            fireMove(remote, pos)
+        -- EXACT QUANTUM MATH
+        local velocity = tRoot.AssemblyLinearVelocity
+        local predictedPos = tRoot.CFrame + (velocity * 0.175)
+
+        if tHum.Sit then
+            predictedPos = CFrame.new(predictedPos.X, -50000, predictedPos.Z)
         end
-        currentIdx = (currentIdx % #remotes) + 1
+
+        local remote = remoteCache[currentIdx]
+        if remote then
+            local mIdx = ((currentIdx - 1) % 10) + 1
+            local speed = tick() * 255
+            local randomSpin = CFrame.Angles(
+                math.sin(speed + (mIdx * 0.5)) * 5,
+                math.cos(speed + (mIdx * 0.8)) * 5, 
+                math.tan(speed + (mIdx * 0.2)) * 0.5
+            )
+            local fPos = predictedPos * randomSpin
+            
+            fireMove(remote, fPos)
+        end
+        currentIdx = (currentIdx % #remoteCache) + 1
     end)
 end
