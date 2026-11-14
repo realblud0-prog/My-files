@@ -8,7 +8,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
     if wsCom then 
         for _, cat in pairs(wsCom:GetChildren()) do 
             for _, p in pairs(cat:GetChildren()) do 
-                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p.SetCurrentCFrame) end 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p) end 
             end 
         end 
     end
@@ -36,14 +36,23 @@ return function(target, selectedName, activeTraps, LocalPlayer)
 
     activeTraps[target] = RunService.Heartbeat:Connect(function()
         if not target or not target.Character or not LocalPlayer.Character then return end
-        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
         local myRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if not tRoot or not myRoot then return end
+        if not myRoot then return end
 
-        local predictedPos = myRoot.CFrame
+        local prop = remoteCache[currentIdx]
+        if prop then
+            local remote = prop:FindFirstChild("SetCurrentCFrame")
+            
+            -- FORCE UNANCHOR & NETWORK OWNERSHIP
+            for _, part in ipairs(prop:GetDescendants()) do
+                if part:IsA("BasePart") then 
+                    part.Anchored = false 
+                    pcall(function() part:SetNetworkOwner(LocalPlayer) end)
+                end
+            end
 
-        local remote = remoteCache[currentIdx]
-        if remote then
+            local predictedPos = myRoot.CFrame
+
             local mIdx = ((currentIdx - 1) % 10) + 1
             local speed = tick() * 255
             local randomSpin = CFrame.Angles(
