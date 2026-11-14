@@ -8,25 +8,18 @@ return function(target, selectedName, activeTraps, LocalPlayer)
     if wsCom then 
         for _, cat in pairs(wsCom:GetChildren()) do 
             for _, p in pairs(cat:GetChildren()) do 
-                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remotes, p) end 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remotes, p.SetCurrentCFrame) end 
             end 
         end 
     end
 
-    if #remotes == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
-    selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    if #remotes == 0 then selectedName.Text = "No props found!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
 
+    selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
     local currentIdx = 1
     local NETWORK_TICK_RATE = 0.033
     local LAST_SEND_TIME = {}
     local NETWORK_STATE = {}
-    local CURRENT_CFRAMES = {}
-
-    for _, prop in ipairs(remotes) do
-        for _, part in ipairs(prop:GetDescendants()) do
-            if part:IsA("BasePart") then part.Anchored = false; part.CanCollide = false end
-        end
-    end
 
     local function fireMove(remote, pos)
         local t = tick()
@@ -46,26 +39,13 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local tHum = target.Character:FindFirstChildOfClass("Humanoid")
         if not tRoot or not tHum then return end
 
-        local prop = remotes[currentIdx]
-        if prop then
-            local remote = prop:FindFirstChild("SetCurrentCFrame")
-            local targetCF
-            
-            -- Drop into void if sitting
+        local remote = remotes[currentIdx]
+        if remote then
+            local pos = tRoot.CFrame
             if tHum.Sit then
-                targetCF = CFrame.new(tRoot.Position.X, -50000, tRoot.Position.Z)
-            else
-                targetCF = tRoot.CFrame
+                pos = CFrame.new(tRoot.Position.X, -50000, tRoot.Position.Z)
             end
-            
-            if not CURRENT_CFRAMES[prop] then CURRENT_CFRAMES[prop] = prop:GetPivot() end
-            
-            CURRENT_CFRAMES[prop] = CURRENT_CFRAMES[prop]:Lerp(targetCF, 0.3)
-            
-            local speed = tick() * 255
-            local randomSpin = CFrame.Angles(math.sin(speed) * 5, math.cos(speed) * 5, math.tan(speed) * 0.5)
-            
-            fireMove(remote, CURRENT_CFRAMES[prop] * randomSpin)
+            fireMove(remote, pos)
         end
         currentIdx = (currentIdx % #remotes) + 1
     end)
