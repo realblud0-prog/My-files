@@ -15,7 +15,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
 
     if #remoteCache == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
 
-    selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    selectedName.Text = "BRINGING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(91, 99, 155)
     
     local currentIdx = 1
     local NETWORK_TICK_RATE = 0.033
@@ -35,17 +35,12 @@ return function(target, selectedName, activeTraps, LocalPlayer)
     end
 
     activeTraps[target] = RunService.Heartbeat:Connect(function()
-        if not target or not target.Character then return end
+        if not target or not target.Character or not LocalPlayer.Character then return end
         local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-        local tHum = target.Character:FindFirstChildOfClass("Humanoid")
-        if not tRoot or not tHum then return end
+        local myRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot or not myRoot then return end
 
-        local velocity = tRoot.AssemblyLinearVelocity
-        local predictedPos = tRoot.CFrame + (velocity * 0.175)
-
-        if tHum.Sit then
-            predictedPos = CFrame.new(predictedPos.X, -50000, predictedPos.Z)
-        end
+        local predictedPos = myRoot.CFrame
 
         local remote = remoteCache[currentIdx]
         if remote then
