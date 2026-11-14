@@ -40,7 +40,6 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local tHum = target.Character:FindFirstChildOfClass("Humanoid")
         if not tRoot or not tHum then return end
 
-        -- EXACT QUANTUM MATH (Targeting Sky instead of Void)
         local velocity = tRoot.AssemblyLinearVelocity
         local predictedPos = tRoot.CFrame + (velocity * 0.175) + Vector3.new(0, 5000, 0)
 
