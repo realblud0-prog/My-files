@@ -1,0 +1,75 @@
+return function(target, selectedName, activeTraps, LocalPlayer)
+    local RunService = game:GetService("RunService")
+    if not target or not target.Character then return end
+    if activeTraps[target] then activeTraps[target]:Disconnect() end
+
+    local remoteCache = {}
+    local wsCom = workspace:FindFirstChild("WorkspaceCom")
+    if wsCom then 
+        for _, cat in pairs(wsCom:GetChildren()) do 
+            for _, p in pairs(cat:GetChildren()) do 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p) end 
+            end 
+        end 
+    end
+
+    if #remoteCache == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
+
+    selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    
+    local currentIdx = 1
+    local NETWORK_TICK_RATE = 0.033
+    local LAST_SEND_TIME = {}
+    local NETWORK_STATE = {}
+
+    local function fireMove(remote, pos)
+        local t = tick()
+        if t - (LAST_SEND_TIME[remote] or 0) >= NETWORK_TICK_RATE and not NETWORK_STATE[remote] then
+            LAST_SEND_TIME[remote] = t; NETWORK_STATE[remote] = true
+            task.spawn(function()
+                local completed = false
+                task.spawn(function() pcall(function() remote:InvokeServer(pos) end); completed = true; NETWORK_STATE[remote] = false end)
+                task.delay(0.05, function() if not completed then NETWORK_STATE[remote] = false end end)
+            end)
+        end
+    end
+
+    activeTraps[target] = RunService.Heartbeat:Connect(function()
+        if not target or not target.Character then return end
+        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+        local tHum = target.Character:FindFirstChildOfClass("Humanoid")
+        if not tRoot or not tHum then return end
+
+        local prop = remoteCache[currentIdx]
+        if prop then
+            local remote = prop:FindFirstChild("SetCurrentCFrame")
+            
+            -- THE FIX: Unanchor the prop so the server accepts the move
+            for _, part in ipairs(prop:GetDescendants()) do
+                if part:IsA("BasePart") then 
+                    part.Anchored = false 
+                    pcall(function() part:SetNetworkOwner(LocalPlayer) end)
+                end
+            end
+
+            local velocity = tRoot.AssemblyLinearVelocity
+            local predictedPos = tRoot.CFrame + (velocity * 0.175)
+
+            if tHum.Sit then
+                predictedPos = CFrame.new(predictedPos.X, -50000, predictedPos.Z)
+            end
+
+            local mIdx = ((currentIdx - 1) % 10) + 1
+            local speed = tick() * 255
+            local randomSpin = CFrame.Angles(
+                math.sin(speed + (mIdx * 0.5)) * 5,
+                math.cos(speed + (mIdx * 0.8)) * 5, 
+                math.tan(speed + (mIdx * 0.2)) * 0.5
+            )
+            local fPos = predictedPos * randomSpin
+            
+            fireMove(remote, fPos)
+        end
+        currentIdx = (currentIdx % #remoteCache) + 1
+    end)
+end
