@@ -1,0 +1,74 @@
+return function(target, selectedName, activeTraps, LocalPlayer)
+    local RunService = game:GetService("RunService")
+    if not target or not target.Character then return end
+    if activeTraps[target] then activeTraps[target]:Disconnect() end
+
+    local remoteCache = {}
+    local wsCom = workspace:FindFirstChild("WorkspaceCom")
+    if wsCom then 
+        for _, cat in pairs(wsCom:GetChildren()) do 
+            for _, p in pairs(cat:GetChildren()) do 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p) end 
+            end 
+        end 
+    end
+
+    if #remoteCache == 0 then return end
+    local currentIdx = 1
+
+    activeTraps[target] = RunService.Heartbeat:Connect(function()
+        if not target or not target.Character then return end
+        local char = target.Character
+        local tRoot = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not tRoot or not hum then return end
+
+        local prop = remoteCache[currentIdx]
+        if prop then
+            local remote = prop:FindFirstChild("SetCurrentCFrame")
+            
+            for _, part in ipairs(prop:GetDescendants()) do
+                if part:IsA("BasePart") then 
+                    part.Anchored = false 
+                    pcall(function() part:SetNetworkOwner(LocalPlayer) end)
+                end
+            end
+
+            local targetCFrame
+            local isSittingOnOurs = false
+            
+            -- CHECK IF THEY ARE SITTING ON OUR PROP
+            if hum.Sit and hum.SeatPart then
+                local current = hum.SeatPart
+                while current and current ~= workspace do
+                    if current:FindFirstChild("SetCurrentCFrame") == remote then
+                        isSittingOnOurs = true
+                        break
+                    end
+                    current = current.Parent
+                end
+            end
+
+            if isSittingOnOurs then
+                -- TELEPORT TO YOU
+                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot then 
+                    targetCFrame = myRoot.CFrame * CFrame.new(0, -2.5, 4) 
+                    selectedName.Text = "BRINGING: " .. target.Name
+                end
+            else
+                -- FOLLOW THE TARGET UNTIL THEY SIT
+                targetCFrame = tRoot.CFrame * CFrame.new(0, -2.5, 0)
+                selectedName.Text = "Waiting for " .. target.Name .. " to sit..."
+            end
+
+            if targetCFrame then
+                local speed = tick() * 255
+                local randomSpin = CFrame.Angles(math.sin(speed) * 5, math.cos(speed) * 5, math.tan(speed) * 0.5)
+                local fPos = targetCFrame * randomSpin
+                task.spawn(function() pcall(function() remote:InvokeServer(fPos) end) end)
+            end
+        end
+        currentIdx = (currentIdx % #remoteCache) + 1
+    end)
+end
