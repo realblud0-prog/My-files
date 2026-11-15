@@ -1,3 +1,4 @@
+
 return function(target, selectedName, activeTraps, LocalPlayer)
     local RunService = game:GetService("RunService")
     if not target or not target.Character then return end
@@ -26,7 +27,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local prop = remoteCache[currentIdx]
         if prop then
             local remote = prop:FindFirstChild("SetCurrentCFrame")
-            
+
             for _, part in ipairs(prop:GetDescendants()) do
                 if part:IsA("BasePart") then 
                     part.Anchored = false 
@@ -36,7 +37,8 @@ return function(target, selectedName, activeTraps, LocalPlayer)
 
             local targetCFrame
             local isSittingOnOurs = false
-            
+
+            -- CHECK IF THEY ARE SITTING ON OUR PROP
             if hum.Sit and hum.SeatPart then
                 local current = hum.SeatPart
                 while current and current ~= workspace do
@@ -49,8 +51,8 @@ return function(target, selectedName, activeTraps, LocalPlayer)
             end
 
             if isSittingOnOurs then
-                -- FLING THEM UP SMOOTHLY
-                targetCFrame = tRoot.CFrame + Vector3.new(0, 20, 0)
+                -- SNAP TO +50000 STUDDS INSTANTLY
+                targetCFrame = CFrame.new(tRoot.Position.X, 50000, tRoot.Position.Z)
                 selectedName.Text = "FLINGING: " .. target.Name
                 selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
             else
@@ -64,7 +66,22 @@ return function(target, selectedName, activeTraps, LocalPlayer)
                 local speed = tick() * 255
                 local randomSpin = CFrame.Angles(math.sin(speed) * 5, math.cos(speed) * 5, math.tan(speed) * 0.5)
                 local fPos = targetCFrame * randomSpin
+                
+                -- Fire the remote to snap them
                 task.spawn(function() pcall(function() remote:InvokeServer(fPos) end) end)
+                
+                -- Add extra upward velocity so they keep spinning up even if stopped
+                if isSittingOnOurs then
+                    task.spawn(function()
+                        for _, part in ipairs(prop:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                pcall(function()
+                                    part.AssemblyLinearVelocity = part.AssemblyLinearVelocity + Vector3.new(0, 500, 0)
+                                end)
+                            end
+                        end
+                    end)
+                end
             end
         end
         currentIdx = (currentIdx % #remoteCache) + 1
