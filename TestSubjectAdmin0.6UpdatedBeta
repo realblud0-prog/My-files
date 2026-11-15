@@ -1,4 +1,4 @@
--- ===== Quarters Admin v0.8 (Smart Tagging) =====
+-- ===== Quarters Admin v0.8.1 (Fixed & Cooler Tags) =====
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,7 +18,6 @@ local WhitelistURL = "https://raw.githubusercontent.com/realblud0-prog/My-files/
 local WhitelistedIds = {}
 local isLocalAllowed = false
 
--- Fetch and parse the whitelist
 local success, response = pcall(function() return game:HttpGet(WhitelistURL) end)
 if success and response then
     for id in string.gmatch(response, "%d+") do
@@ -29,7 +28,6 @@ else
     return
 end
 
--- Check if the person running the script is allowed
 if WhitelistedIds[LocalPlayer.UserId] then
     isLocalAllowed = true
 else
@@ -37,7 +35,9 @@ else
     return
 end
 
--- Function to add the tag
+-- ==========================================
+-- COOLER VISUAL TAG
+-- ==========================================
 local function addQuartersTag(plr)
     if not plr or not plr.Character then return end
     local head = plr.Character:FindFirstChild("Head")
@@ -46,42 +46,87 @@ local function addQuartersTag(plr)
 
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "QuartersTag"
-    billboard.Size = UDim2.new(0, 120, 0, 30)
-    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.Size = UDim2.new(0, 150, 0, 35)
+    billboard.StudsOffset = Vector3.new(0, 2.8, 0)
     billboard.AlwaysOnTop = true
     billboard.Parent = head
 
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.fromScale(1, 1)
+    bg.BackgroundColor3 = Color3.fromRGB(14, 15, 20)
+    bg.BackgroundTransparency = 0.3
+    bg.BorderSizePixel = 0
+    bg.Parent = billboard
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = bg
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(54, 57, 75)
+    stroke.Thickness = 1.5
+    stroke.Parent = bg
+
+    -- Icon
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 24, 0, 24)
+    icon.Position = UDim2.new(0, 8, 0.5, -12)
+    icon.BackgroundTransparency = 1
+    icon.Image = "rbxassetid://85379612776466"
+    icon.Parent = bg
+
+    -- Text
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Position = UDim2.new(0, 36, 0, 0)
     label.BackgroundTransparency = 1
-    label.Text = "Quarters User"
-    label.TextColor3 = Color3.fromRGB(91, 99, 155)
-    label.TextStrokeTransparency = 0
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 14
-    label.Parent = billboard
+    label.Text = "QUARTERS USER"
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeTransparency = 0.5
+    label.Font = Enum.Font.GothamBlack
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = bg
+
+    -- Gradient Text
+    local textGradient = Instance.new("UIGradient")
+    textGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(91, 99, 155)), 
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+    })
+    textGradient.Parent = label
+
+    -- Bobbing Animation
+    task.spawn(function()
+        while billboard.Parent do
+            local tween = TweenService:Create(billboard, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {StudsOffset = Vector3.new(0, 3.2, 0)})
+            tween:Play()
+            task.wait(1.2)
+        end
+    end)
 end
 
--- Function to check a player and apply tag if whitelisted
 local function checkPlayer(plr)
     if WhitelistedIds[plr.UserId] then
-        addQuartersTag(plr)
+        if plr.Character then
+            addQuartersTag(plr)
+        end
+        -- Wait for the character to fully load on respawn
+        plr.CharacterAdded:Connect(function()
+            task.wait(1.5) 
+            addQuartersTag(plr)
+        end)
     end
 end
 
--- Apply tags to everyone currently in the server
+-- Apply to everyone currently in the server
 for _, plr in ipairs(Players:GetPlayers()) do
     checkPlayer(plr)
 end
 
--- Apply tags to new players joining
-Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(function()
-        task.wait(1) -- Wait for character to load
-        checkPlayer(plr)
-    end)
-    checkPlayer(plr) -- Check immediately in case they are already loaded
-end)
+-- Apply to new players joining
+Players.PlayerAdded:Connect(checkPlayer)
+
 
 -- ==========================================
 -- LOAD EXTERNAL FUNCTIONS
@@ -141,7 +186,7 @@ local titleGradient = create("UIGradient", {
     })
 }, title)
 
-create("TextLabel", { Position = UDim2.fromOffset(50, 32), Size = UDim2.fromOffset(190, 16), BackgroundTransparency = 1, Text = "Made by Quarter Eggplant", TextColor3 = C.Muted, Font = Enum.Font.GothamMedium, TextSize = 8, TextXAlignment = Enum.TextXAlignment.Left }, header)
+create("TextLabel", { Position = UDim2.fromOffset(50, 32), Size = UDim2.fromOffset(190, 16), BackgroundTransparency = 1, Text = "CONTROL PANEL", TextColor3 = C.Muted, Font = Enum.Font.GothamMedium, TextSize = 8, TextXAlignment = Enum.TextXAlignment.Left }, header)
 
 local minimize = create("TextButton", { Size = UDim2.fromOffset(26, 26), Position = UDim2.new(1, -38, 0, 17), BackgroundColor3 = C.Secondary, Text = "−", TextColor3 = C.Text, TextSize = 18, Font = Enum.Font.GothamBold, AutoButtonColor = false }, header)
 round(minimize, 8); outline(minimize, 0.6)
