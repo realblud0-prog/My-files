@@ -1,23 +1,21 @@
 return function(target, selectedName, activeTraps, LocalPlayer)
     local RunService = game:GetService("RunService")
-    if not target or activeTraps[target] then return end
+    if not target or not target.Character then return end
+    if activeTraps[target] then activeTraps[target]:Disconnect() end
 
     local remoteCache = {}
     local wsCom = workspace:FindFirstChild("WorkspaceCom")
     if wsCom then 
         for _, cat in pairs(wsCom:GetChildren()) do 
             for _, p in pairs(cat:GetChildren()) do 
-                if p:FindFirstChild("SetCurrentCFrame") then 
-                    table.insert(remoteCache, p.SetCurrentCFrame) 
-                end 
+                if p:FindFirstChild("SetCurrentCFrame") then table.insert(remoteCache, p) end 
             end 
         end 
     end
 
     if #remoteCache == 0 then return end
-
-    selectedName.Text = "EXECUTING: " .. target.Name
-    selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    selectedName.Text = "EXECUTING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80)
+    
     local currentIdx = 1
 
     activeTraps[target] = RunService.Heartbeat:Connect(function()
@@ -27,26 +25,35 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local hum = char:FindFirstChildOfClass("Humanoid")
         if not tRoot or not hum then return end
 
-        -- EXACT QUANTUM LOGIC
-        local distToFloor = (hum.HipHeight + (tRoot.Size.Y / 2))
-        local velocity = tRoot.AssemblyLinearVelocity
-        local predictedPos = tRoot.CFrame + (velocity * 0.175)
+        local prop = remoteCache[currentIdx]
+        if prop then
+            local remote = prop:FindFirstChild("SetCurrentCFrame")
+            
+            -- FORCE UNANCHOR (Required for Brookhaven)
+            for _, part in ipairs(prop:GetDescendants()) do
+                if part:IsA("BasePart") then 
+                    part.Anchored = false 
+                    pcall(function() part:SetNetworkOwner(LocalPlayer) end)
+                end
+            end
 
-        if hum.Sit then
-            predictedPos = CFrame.new(predictedPos.X, -50000, predictedPos.Z)
-        end
+            -- EXACT QUANTUM MATH
+            local velocity = tRoot.AssemblyLinearVelocity
+            local predictedPos = tRoot.CFrame + (velocity * 0.175)
 
-        local remote = remoteCache[currentIdx]
-        if remote then
+            if hum.Sit then
+                predictedPos = CFrame.new(predictedPos.X, -50000, predictedPos.Z)
+            end
+
             local mIdx = ((currentIdx - 1) % 10) + 1
-            local fPos
             local speed = tick() * 255
+            
             local randomSpin = CFrame.Angles(
                 math.sin(speed + (mIdx * 0.5)) * 5,
                 math.cos(speed + (mIdx * 0.8)) * 5, 
                 math.tan(speed + (mIdx * 0.2)) * 0.5
             )
-            fPos = predictedPos * randomSpin
+            local fPos = predictedPos * randomSpin
             
             task.spawn(function() pcall(function() remote:InvokeServer(fPos) end) end)
         end
