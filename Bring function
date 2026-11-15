@@ -13,9 +13,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         end 
     end
 
-    if #remoteCache == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
-
-    selectedName.Text = "Tracking: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(91, 99, 155)
+    if #remoteCache == 0 then return end
     local currentIdx = 1
 
     activeTraps[target] = RunService.Heartbeat:Connect(function()
@@ -28,8 +26,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         local prop = remoteCache[currentIdx]
         if prop then
             local remote = prop:FindFirstChild("SetCurrentCFrame")
-
-            -- FORCE UNANCHOR
+            
             for _, part in ipairs(prop:GetDescendants()) do
                 if part:IsA("BasePart") then 
                     part.Anchored = false 
@@ -38,9 +35,9 @@ return function(target, selectedName, activeTraps, LocalPlayer)
             end
 
             local targetCFrame
-
-            -- CHECK IF THEY ARE SITTING ON OUR PROP
             local isSittingOnOurs = false
+            
+            -- CHECK IF THEY ARE SITTING ON OUR PROP
             if hum.Sit and hum.SeatPart then
                 local current = hum.SeatPart
                 while current and current ~= workspace do
@@ -55,13 +52,13 @@ return function(target, selectedName, activeTraps, LocalPlayer)
             if isSittingOnOurs then
                 -- TELEPORT TO YOU
                 local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if myRoot then
-                    targetCFrame = myRoot.CFrame * CFrame.new(0, -2.5, 4) -- 4 studs in front of you
+                if myRoot then 
+                    targetCFrame = myRoot.CFrame * CFrame.new(0, -2.5, 4) 
                     selectedName.Text = "BRINGING: " .. target.Name
                 end
             else
                 -- FOLLOW THE TARGET UNTIL THEY SIT
-                targetCFrame = tRoot.CFrame * CFrame.new(0, -2.5, 0) -- Right under their feet
+                targetCFrame = tRoot.CFrame * CFrame.new(0, -2.5, 0)
                 selectedName.Text = "Waiting for " .. target.Name .. " to sit..."
             end
 
