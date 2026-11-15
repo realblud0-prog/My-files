@@ -13,26 +13,10 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         end 
     end
 
-    if #remoteCache == 0 then selectedName.Text = "Place a prop first!"; selectedName.TextColor3 = Color3.fromRGB(200, 80, 80); return end
-
+    if #remoteCache == 0 then return end
     selectedName.Text = "BRINGING: " .. target.Name; selectedName.TextColor3 = Color3.fromRGB(91, 99, 155)
     
     local currentIdx = 1
-    local NETWORK_TICK_RATE = 0.033
-    local LAST_SEND_TIME = {}
-    local NETWORK_STATE = {}
-
-    local function fireMove(remote, pos)
-        local t = tick()
-        if t - (LAST_SEND_TIME[remote] or 0) >= NETWORK_TICK_RATE and not NETWORK_STATE[remote] then
-            LAST_SEND_TIME[remote] = t; NETWORK_STATE[remote] = true
-            task.spawn(function()
-                local completed = false
-                task.spawn(function() pcall(function() remote:InvokeServer(pos) end); completed = true; NETWORK_STATE[remote] = false end)
-                task.delay(0.05, function() if not completed then NETWORK_STATE[remote] = false end end)
-            end)
-        end
-    end
 
     activeTraps[target] = RunService.Heartbeat:Connect(function()
         if not target or not target.Character or not LocalPlayer.Character then return end
@@ -43,7 +27,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
         if prop then
             local remote = prop:FindFirstChild("SetCurrentCFrame")
             
-            -- FORCE UNANCHOR & NETWORK OWNERSHIP
+            -- FORCE UNANCHOR
             for _, part in ipairs(prop:GetDescendants()) do
                 if part:IsA("BasePart") then 
                     part.Anchored = false 
@@ -51,10 +35,12 @@ return function(target, selectedName, activeTraps, LocalPlayer)
                 end
             end
 
-            local predictedPos = myRoot.CFrame
+            -- EXACT QUANTUM MATH (Offset so it doesn't spawn inside you)
+            local predictedPos = myRoot.CFrame * CFrame.new(0, 0, 4)
 
             local mIdx = ((currentIdx - 1) % 10) + 1
             local speed = tick() * 255
+            
             local randomSpin = CFrame.Angles(
                 math.sin(speed + (mIdx * 0.5)) * 5,
                 math.cos(speed + (mIdx * 0.8)) * 5, 
@@ -62,7 +48,7 @@ return function(target, selectedName, activeTraps, LocalPlayer)
             )
             local fPos = predictedPos * randomSpin
             
-            fireMove(remote, fPos)
+            task.spawn(function() pcall(function() remote:InvokeServer(fPos) end) end)
         end
         currentIdx = (currentIdx % #remoteCache) + 1
     end)
