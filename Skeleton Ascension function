@@ -1,0 +1,300 @@
+-- ===== SKELETON ASCENSION EXTERNAL MODULE =====
+-- Upload this to: https://raw.githubusercontent.com/realblud0-prog/My-files/refs/heads/main/Skeleton%20Ascension%20function
+return function(targetPlayer, statusLabel)
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local RunService = game:GetService("RunService")
+    local SoundService = game:GetService("SoundService")
+    local LocalPlayer = Players.LocalPlayer
+    
+    local RE = ReplicatedStorage:WaitForChild("RE")
+    local PROP_MENU = RE:WaitForChild("1Clea1rTool1s")
+    
+    -- Sound Setup (Client-sided)
+    local oldSound = SoundService:FindFirstChild("AscensionSound")
+    if oldSound then oldSound:Destroy() end
+    local ascensionSound = Instance.new("Sound")
+    ascensionSound.Name = "AscensionSound"
+    ascensionSound.SoundId = "rbxassetid://1840524246"
+    ascensionSound.Looped = true
+    ascensionSound.Volume = 2
+    ascensionSound.Parent = SoundService
+
+    -- UI Clicker
+    local function clickUI(menu, name)
+        local btn = menu and menu:FindFirstChild(name, true)
+        if btn then
+            if getconnections then
+                for _, c in ipairs(getconnections(btn.MouseButton1Click)) do
+                    if c.Function then pcall(c.Function) end
+                    if c.Fire then pcall(c.Fire) end
+                end
+                for _, c in ipairs(getconnections(btn.MouseButton1Down)) do
+                    if c.Function then pcall(c.Function) end
+                end
+            end
+            pcall(function() btn:Activate() end)
+            pcall(function() btn.MouseButton1Click:Fire() end)
+            return true
+        end
+        return false
+    end
+
+    local function getMenu()
+        local pg = LocalPlayer:FindFirstChild("PlayerGui")
+        return pg and pg:FindFirstChild("NoResetGUIHandler", true) and pg.NoResetGUIHandler:FindFirstChild("PropMenuFilter", true)
+    end
+
+    local function getRemoteSet()
+        local set = {}
+        local wsCom = workspace:FindFirstChild("WorkspaceCom")
+        if wsCom then
+            for _, cat in pairs(wsCom:GetChildren()) do
+                for _, p in pairs(cat:GetChildren()) do
+                    if p:FindFirstChild("SetCurrentCFrame") then set[p] = true end
+                end
+            end
+        end
+        return set
+    end
+
+    local function isSeatProp(p)
+        if p:FindFirstChildOfClass("Seat") or p:FindFirstChild("Seat", true) or p:FindFirstChild("SeatWeld", true) then return true end
+        local n = string.lower(p.Name)
+        return string.find(n, "couch") or string.find(n, "chair") or string.find(n, "sofa") or string.find(n, "seat")
+    end
+
+    local function findNewRemote(oldSet, requireSeat)
+        local wsCom = workspace:FindFirstChild("WorkspaceCom")
+        if not wsCom then return nil end
+        for _, cat in pairs(wsCom:GetChildren()) do
+            for _, p in pairs(cat:GetChildren()) do
+                if p:FindFirstChild("SetCurrentCFrame") and not oldSet[p] then
+                    if not requireSeat or isSeatProp(p) then return p end
+                end
+            end
+        end
+        return nil
+    end
+
+    local function invokeCFrame(remote, cframe)
+        task.spawn(function()
+            pcall(function() remote:InvokeServer(cframe) end)
+        end)
+    end
+
+    -- Cleanup Function
+    local trackedProps = {}
+    local function stopAndClear()
+        for _, prop in ipairs(trackedProps) do
+            pcall(function() prop:Destroy() end)
+        end
+        trackedProps = {}
+        if ascensionSound and ascensionSound.IsPlaying then
+            ascensionSound:Stop()
+        end
+        pcall(function()
+            RE["1Clea1rTool1s"]:FireServer("ClearAllProps")
+        end)
+        if statusLabel then
+            statusLabel.Text = "Cleared props."
+            statusLabel.TextColor3 = Color3.fromRGB(135, 140, 158)
+        end
+    end
+
+    -- Main Execution
+    task.spawn(function()
+        if statusLabel then statusLabel.Text = "Starting..." end
+        
+        local char = LocalPlayer.Character
+        local myRoot = char and char:FindFirstChild("HumanoidRootPart")
+        if not myRoot then return end
+
+        local tRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then 
+            if statusLabel then statusLabel.Text = "Target invalid" end
+            return 
+        end
+
+        -- Equip PropMaker
+        local tool = char:FindFirstChild("PropMaker") or LocalPlayer.Backpack:FindFirstChild("PropMaker")
+        if not tool then
+            RE["1Too1l"]:InvokeServer("PickingTools", "PropMaker")
+            task.wait(0.5)
+            tool = LocalPlayer.Backpack:FindFirstChild("PropMaker")
+        end
+        if not tool then return end
+        if tool.Parent ~= char then tool.Parent = char; task.wait(0.5) end
+        local placer = tool:FindFirstChild("Tool_PropMake")
+        if not placer then return end
+
+        PROP_MENU:FireServer("OpenPropMenu")
+        task.wait(1)
+
+        local menu = getMenu()
+        if not menu then return end
+
+        local beforeSkele = getRemoteSet()
+        local targetStartPos = tRoot.Position
+        local skeleTargetY = targetStartPos.Y + 40
+        local skelePos = CFrame.new(targetStartPos.X + 10, skeleTargetY, targetStartPos.Z)
+
+        -- SPAWN SKELETON
+        if statusLabel then statusLabel.Text = "Spawning Skeleton..." end
+        local skeleProp = nil
+        local attempts = 0
+        
+        while not skeleProp and attempts < 5 do
+            attempts = attempts + 1
+            clickUI(menu, "BackButton")
+            task.wait(0.3)
+            clickUI(menu, "Spooky")
+            task.wait(0.4)
+            clickUI(menu, "Dead")
+            task.wait(0.4)
+            clickUI(menu, "DeadSkeletonStandArms")
+            task.wait(0.4)
+
+            local rayParams = RaycastParams.new()
+            rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+            rayParams.FilterType = Enum.RaycastFilterType.Exclude
+            local hit = workspace:Raycast(myRoot.Position + Vector3.new(0, 5, 0), Vector3.new(0, -50, 0), rayParams)
+            
+            local basePart = hit and hit.Instance or workspace.Terrain
+            local dropPos = hit and hit.Position or myRoot.Position
+
+            placer:FireServer(basePart, dropPos)
+            task.wait(1)
+
+            skeleProp = findNewRemote(beforeSkele, false)
+        end
+
+        if skeleProp then
+            table.insert(trackedProps, skeleProp)
+            invokeCFrame(skeleProp:FindFirstChild("SetCurrentCFrame"), skelePos)
+            if statusLabel then statusLabel.Text = "Skeleton placed. Spawn seat." end
+        else
+            if statusLabel then statusLabel.Text = "Skeleton spawn failed." end
+            return
+        end
+
+        -- Snapshot for manual seat
+        local oldProps = getRemoteSet()
+        local seatProp = nil
+        local waitStart = tick()
+
+        if statusLabel then statusLabel.Text = "Spawn your seat now..." end
+
+        repeat
+            task.wait(0.2)
+            seatProp = findNewRemote(oldProps, true)
+            if not seatProp and tick() - waitStart > 5 then
+                seatProp = findNewRemote(oldProps, false)
+            end
+        until seatProp
+
+        if not seatProp then return end
+
+        table.insert(trackedProps, seatProp)
+        local seatRemote = seatProp:FindFirstChild("SetCurrentCFrame")
+        if not seatRemote then return end
+
+        if statusLabel then statusLabel.Text = "Seat detected: " .. seatProp.Name end
+
+        -- ==========================================
+        -- QUANTUM CFrame ASCENSION & ESCAPE LOOP
+        -- ==========================================
+        local hasAscended = false
+        local hasVoided = false
+        local lockedY = targetStartPos.Y
+        local currentIdx = 1
+        local floatSpeed = 0.15 
+        
+        local lockX, lockZ = nil, nil 
+
+        task.wait(0.5)
+        if statusLabel then statusLabel.Text = "Waiting for target to sit..." end
+
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            if not targetPlayer or not targetPlayer.Character then return end
+
+            local tR = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local hum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if not tR or not hum then return end
+
+            local distance = (tR.Position - myRoot.Position).Magnitude
+            currentIdx = currentIdx + 1
+            local velocity = tR.AssemblyLinearVelocity
+            local predictedPos = tR.CFrame + (velocity * 0.175)
+
+            local mIdx = ((currentIdx - 1) % 10) + 1
+            local speed = tick() * 255
+            local randomSpin = CFrame.Angles(
+                math.sin(speed + (mIdx * 0.5)) * 5,
+                math.cos(speed + (mIdx * 0.8)) * 5, 
+                math.tan(speed + (mIdx * 0.2)) * 0.5
+            )
+
+            local isSitting = false
+            if hum.Sit and hum.SeatPart then
+                local current = hum.SeatPart
+                while current and current ~= workspace do
+                    if current == seatProp or current:FindFirstChild("SetCurrentCFrame") == seatRemote then
+                        isSitting = true
+                        break
+                    end
+                    current = current.Parent
+                end
+            end
+
+            if isSitting and not hasAscended then
+                hasAscended = true
+                lockX, lockZ = tR.Position.X, tR.Position.Z
+                if statusLabel then statusLabel.Text = "ASCENDING: " .. targetPlayer.Name end
+                if ascensionSound and not ascensionSound.IsPlaying then
+                    ascensionSound:Play()
+                end
+            end
+
+            if hasAscended then
+                if not hasVoided then
+                    if isSitting then
+                        lockedY = lockedY + floatSpeed
+                        local couchPos = CFrame.new(lockX, lockedY, lockZ)
+                        invokeCFrame(seatRemote, couchPos)
+                        if statusLabel then statusLabel.Text = "ASCENDING: " .. targetPlayer.Name .. " (Y: " .. math.floor(lockedY) .. ")" end
+                    else
+                        if statusLabel then statusLabel.Text = "Escape attempted! Tracking..." end
+                        local trackPos = CFrame.new(predictedPos.X, predictedPos.Y - 2.5, predictedPos.Z) * randomSpin
+                        invokeCFrame(seatRemote, trackPos)
+                        lockX, lockZ = predictedPos.X, predictedPos.Z
+                    end
+
+                    if lockedY >= skeleTargetY then
+                        hasVoided = true
+                        if statusLabel then statusLabel.Text = "Reached skeleton. Voiding..." end
+                    end
+                else
+                    local voidPos = CFrame.new(tR.Position.X, -50000, tR.Position.Z)
+                    invokeCFrame(seatRemote, voidPos)
+                    if statusLabel then statusLabel.Text = "Tracking voided target. Dist: " .. math.floor(distance) end
+                end
+            else
+                local groundPos = CFrame.new(predictedPos.X, predictedPos.Y - 2.5, predictedPos.Z) * randomSpin
+                invokeCFrame(seatRemote, groundPos)
+            end
+        end)
+        
+        -- Safety cleanup if the script re-runs
+        task.spawn(function()
+            while task.wait(1) do
+                if not targetPlayer or not targetPlayer.Character then
+                    connection:Disconnect()
+                    stopAndClear()
+                    break
+                end
+            end
+        end)
+    end)
+end
