@@ -1,4 +1,4 @@
--- ===== Quarters Admin v0.8.4 (UI Updates & Optimizations) =====
+-- ===== Quarters Admin v0.8.5 (Fixed Minimized Logic) =====
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -96,7 +96,7 @@ local function addQuartersTag(plr)
     })
     textGradient.Parent = label
 
-    -- Bobbing Animation (Optimized task loop)
+    -- Bobbing Animation
     task.spawn(function()
         while billboard.Parent do
             local tween = TweenService:Create(billboard, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {StudsOffset = Vector3.new(0, 3.2, 0)})
@@ -192,7 +192,7 @@ round(header, 14)
 -- 4. NEW LOGO
 create("ImageLabel", { Size = UDim2.fromOffset(32, 32), Position = UDim2.fromOffset(12, 14), BackgroundTransparency = 1, Image = "rbxassetid://88866472200369", ScaleType = Enum.ScaleType.Fit }, header)
 
--- Gradient Title (Reduced width to make room for FPS)
+-- Gradient Title
 local title = create("TextLabel", { Position = UDim2.fromOffset(50, 12), Size = UDim2.fromOffset(130, 20), BackgroundTransparency = 1, Text = "QUARTERS ADMIN", TextColor3 = Color3.new(1,1,1), Font = Enum.Font.GothamBlack, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd }, header)
 create("UIGradient", {
     Color = ColorSequence.new({
@@ -555,6 +555,8 @@ end)
 local miniIcon = create("ImageButton", {
     Name = "MinimizedIcon",
     Size = UDim2.fromOffset(50, 50),
+    AnchorPoint = Vector2.new(0.5, 0.5), -- Center anchor for smooth dragging
+    Position = UDim2.fromScale(0.5, 0.5), -- Initial position
     BackgroundColor3 = Color3.fromRGB(14, 15, 20),
     BackgroundTransparency = 0.2,
     Image = "rbxassetid://88866472200369",
@@ -565,41 +567,50 @@ local miniIcon = create("ImageButton", {
 round(miniIcon, 25) -- Circle
 local miniStroke = create("UIStroke", { Color = Color3.fromRGB(0, 255, 0), Thickness = 2 }, miniIcon) -- Bright Green outline
 
--- Mini Icon Dragging
-local miniDragging, miniDragStart, miniStartPos
+local hasBeenMinimized = false
+local miniDragging = false
+local miniDragStart = nil
+local miniStartPos = nil
+local dragDistance = 0
+
+-- Mini Icon Dragging Logic
 miniIcon.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         miniDragging = true
         miniDragStart = input.Position
         miniStartPos = miniIcon.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then miniDragging = false end
-        end)
+        dragDistance = 0
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if miniDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - miniDragStart
+        dragDistance = delta.Magnitude -- Track how far they moved
         miniIcon.Position = UDim2.new(miniStartPos.X.Scale, miniStartPos.X.Offset + delta.X, miniStartPos.Y.Scale, miniStartPos.Y.Offset + delta.Y)
     end
 end)
 
--- Toggle Minimize
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-    minimized = true
-    main.Visible = false
-    miniIcon.Position = UDim2.new(main.Position.X, main.Position.Y) -- Spawn where main was
-    miniIcon.Visible = true
+UserInputService.InputEnded:Connect(function(input)
+    if miniDragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        miniDragging = false
+        -- Only open if they barely moved (less than 10 pixels) -> It's a click, not a drag
+        if dragDistance < 10 then
+            miniIcon.Visible = false
+            main.Visible = true
+        end
+    end
 end)
 
--- Restore from Mini Icon
-miniIcon.MouseButton1Click:Connect(function()
-    if miniDragging then return end -- Prevent opening when just dragging
-    minimized = false
-    miniIcon.Visible = false
-    main.Visible = true
+-- Toggle Minimize
+minimize.MouseButton1Click:Connect(function()
+    main.Visible = false
+    miniIcon.Visible = true
+    -- If it's the first time minimizing, spawn it where the main frame was
+    if not hasBeenMinimized then
+        miniIcon.Position = UDim2.new(main.Position.X, main.Position.Y)
+        hasBeenMinimized = true
+    end
 end)
 
 refreshPlayers()
