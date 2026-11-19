@@ -1,6 +1,7 @@
 -- ===== SKELETON ASCENSION EXTERNAL MODULE =====
--- Upload this to: https://raw.githubusercontent.com/realblud0-prog/My-files/refs/heads/main/Skeleton%20Ascension%20function
-return function(targetPlayer, statusLabel)
+local API = {}
+
+API.start = function(targetPlayer, statusLabel)
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
@@ -10,7 +11,11 @@ return function(targetPlayer, statusLabel)
     local RE = ReplicatedStorage:WaitForChild("RE")
     local PROP_MENU = RE:WaitForChild("1Clea1rTool1s")
     
-    -- Sound Setup (Client-sided)
+    local running = false
+    local activeConnection = nil
+    local trackedProps = {}
+
+    -- Sound setup
     local oldSound = SoundService:FindFirstChild("AscensionSound")
     if oldSound then oldSound:Destroy() end
     local ascensionSound = Instance.new("Sound")
@@ -20,7 +25,7 @@ return function(targetPlayer, statusLabel)
     ascensionSound.Volume = 2
     ascensionSound.Parent = SoundService
 
-    -- UI Clicker
+    -- HELPERS
     local function clickUI(menu, name)
         local btn = menu and menu:FindFirstChild(name, true)
         if btn then
@@ -83,68 +88,77 @@ return function(targetPlayer, statusLabel)
         end)
     end
 
-    -- Cleanup Function
-    local trackedProps = {}
+    -- STOP / CLEAR FUNCTION
     local function stopAndClear()
+        running = false
+        if activeConnection then
+            activeConnection:Disconnect()
+            activeConnection = nil
+        end
         for _, prop in ipairs(trackedProps) do
             pcall(function() prop:Destroy() end)
         end
         trackedProps = {}
+        
         if ascensionSound and ascensionSound.IsPlaying then
             ascensionSound:Stop()
         end
+
         pcall(function()
             RE["1Clea1rTool1s"]:FireServer("ClearAllProps")
         end)
+        
         if statusLabel then
             statusLabel.Text = "Cleared props."
             statusLabel.TextColor3 = Color3.fromRGB(135, 140, 158)
         end
     end
+    API.stop = stopAndClear
 
-    -- Main Execution
+    -- START LOGIC
+    if running then return end
+    stopAndClear()
+    running = true
+    
     task.spawn(function()
-        if statusLabel then statusLabel.Text = "Starting..." end
-        
         local char = LocalPlayer.Character
         local myRoot = char and char:FindFirstChild("HumanoidRootPart")
-        if not myRoot then return end
+        if not myRoot then running = false return end
 
         local tRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not tRoot then 
-            if statusLabel then statusLabel.Text = "Target invalid" end
+            if statusLabel then statusLabel.Text = "No target root" end
+            running = false 
             return 
         end
 
-        -- Equip PropMaker
         local tool = char:FindFirstChild("PropMaker") or LocalPlayer.Backpack:FindFirstChild("PropMaker")
         if not tool then
             RE["1Too1l"]:InvokeServer("PickingTools", "PropMaker")
             task.wait(0.5)
             tool = LocalPlayer.Backpack:FindFirstChild("PropMaker")
         end
-        if not tool then return end
+        if not tool then running = false return end
         if tool.Parent ~= char then tool.Parent = char; task.wait(0.5) end
         local placer = tool:FindFirstChild("Tool_PropMake")
-        if not placer then return end
+        if not placer then running = false return end
 
         PROP_MENU:FireServer("OpenPropMenu")
         task.wait(1)
 
         local menu = getMenu()
-        if not menu then return end
+        if not menu then running = false return end
 
         local beforeSkele = getRemoteSet()
         local targetStartPos = tRoot.Position
         local skeleTargetY = targetStartPos.Y + 40
         local skelePos = CFrame.new(targetStartPos.X + 10, skeleTargetY, targetStartPos.Z)
 
-        -- SPAWN SKELETON
         if statusLabel then statusLabel.Text = "Spawning Skeleton..." end
         local skeleProp = nil
         local attempts = 0
         
-        while not skeleProp and attempts < 5 do
+        while not skeleProp and attempts < 5 and running do
             attempts = attempts + 1
             clickUI(menu, "BackButton")
             task.wait(0.3)
@@ -169,16 +183,16 @@ return function(targetPlayer, statusLabel)
             skeleProp = findNewRemote(beforeSkele, false)
         end
 
-        if skeleProp then
+        if skeleProp and running then
             table.insert(trackedProps, skeleProp)
             invokeCFrame(skeleProp:FindFirstChild("SetCurrentCFrame"), skelePos)
             if statusLabel then statusLabel.Text = "Skeleton placed. Spawn seat." end
         else
             if statusLabel then statusLabel.Text = "Skeleton spawn failed." end
+            running = false
             return
         end
 
-        -- Snapshot for manual seat
         local oldProps = getRemoteSet()
         local seatProp = nil
         local waitStart = tick()
@@ -191,33 +205,36 @@ return function(targetPlayer, statusLabel)
             if not seatProp and tick() - waitStart > 5 then
                 seatProp = findNewRemote(oldProps, false)
             end
-        until seatProp
+        until seatProp or not running
 
-        if not seatProp then return end
+        if not seatProp or not running then
+            if statusLabel then statusLabel.Text = "Cancelled or no seat." end
+            running = false
+            return
+        end
 
         table.insert(trackedProps, seatProp)
         local seatRemote = seatProp:FindFirstChild("SetCurrentCFrame")
-        if not seatRemote then return end
+        if not seatRemote then
+            if statusLabel then statusLabel.Text = "Seat invalid." end
+            running = false
+            return
+        end
 
         if statusLabel then statusLabel.Text = "Seat detected: " .. seatProp.Name end
 
-        -- ==========================================
-        -- QUANTUM CFrame ASCENSION & ESCAPE LOOP
-        -- ==========================================
         local hasAscended = false
         local hasVoided = false
         local lockedY = targetStartPos.Y
         local currentIdx = 1
         local floatSpeed = 0.15 
-        
         local lockX, lockZ = nil, nil 
 
         task.wait(0.5)
-        if statusLabel then statusLabel.Text = "Waiting for target to sit..." end
+        if statusLabel then statusLabel.Text = "Waiting to sit..." end
 
-        local connection
-        connection = RunService.Heartbeat:Connect(function()
-            if not targetPlayer or not targetPlayer.Character then return end
+        activeConnection = RunService.Heartbeat:Connect(function()
+            if not running or not targetPlayer or not targetPlayer.Character then return end
 
             local tR = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
             local hum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -278,23 +295,14 @@ return function(targetPlayer, statusLabel)
                 else
                     local voidPos = CFrame.new(tR.Position.X, -50000, tR.Position.Z)
                     invokeCFrame(seatRemote, voidPos)
-                    if statusLabel then statusLabel.Text = "Tracking voided target. Dist: " .. math.floor(distance) end
+                    if statusLabel then statusLabel.Text = "Tracking voided. Dist: " .. math.floor(distance) end
                 end
             else
                 local groundPos = CFrame.new(predictedPos.X, predictedPos.Y - 2.5, predictedPos.Z) * randomSpin
                 invokeCFrame(seatRemote, groundPos)
             end
         end)
-        
-        -- Safety cleanup if the script re-runs
-        task.spawn(function()
-            while task.wait(1) do
-                if not targetPlayer or not targetPlayer.Character then
-                    connection:Disconnect()
-                    stopAndClear()
-                    break
-                end
-            end
-        end)
     end)
 end
+
+return API
